@@ -1,0 +1,31 @@
+# FastAPI and ASGI server
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+
+# Pydantic for data validation
+pydantic==2.9.2
+pydantic-settings==2.6.1
+
+# Database - Async PostgreSQL only
+sqlalchemy[asyncio]==2.0.36
+alembic==1.13.3
+asyncpg==0.30.0
+
+# Authentication and Security
+PyJWT==2.9.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.12
+
+# Environment variables
+python-dotenv==1.0.1
+
+# Testing
+pytest==8.3.3
+pytest-asyncio==0.24.0
+httpx==0.27.2
+faker==30.8.2
+
+# Development tools
+black==24.10.0
+flake8==7.1.1
+isort==5.13.2pytest-cov==6.0.0

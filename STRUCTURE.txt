@@ -1,0 +1,88 @@
+PyTaskHub Project Structure
+============================
+
+todo-app-backend/
+│
+├── 📁 app/                          # Main application package
+│   ├── __init__.py                  # Package marker
+│   ├── main.py                      # FastAPI application entry point
+│   │
+│   ├── 📁 api/                      # API layer
+│   │   ├── __init__.py
+│   │   └── 📁 v1/                   # API version 1
+│   │       ├── __init__.py
+│   │       ├── api.py               # Router aggregation
+│   │       └── 📁 endpoints/        # API endpoints by feature
+│   │           ├── __init__.py
+│   │           ├── auth.py          # Authentication endpoints
+│   │           ├── users.py         # User management endpoints
+│   │           ├── tasks.py         # Task CRUD endpoints
+│   │           └── categories.py   # Category CRUD endpoints
+│   │
+│   ├── 📁 core/                     # Core functionality
+│   │   ├── __init__.py
+│   │   ├── config.py                # ✅ Application settings
+│   │   └── security.py              # JWT, password hashing (task #10)
+│   │
+│   ├── 📁 db/                       # Database layer
+│   │   ├── __init__.py
+│   │   └── session.py               # DB connection (task #2)
+│   │
+│   ├── 📁 models/                   # SQLAlchemy ORM models
+│   │   ├── __init__.py
+│   │   ├── user.py                  # User model (task #5)
+│   │   ├── task.py                  # Task model (task #6)
+│   │   └── category.py              # Category model (task #7)
+│   │
+│   ├── 📁 schemas/                  # Pydantic schemas
+│   │   ├── __init__.py
+│   │   ├── user.py                  # User schemas
+│   │   ├── task.py                  # Task schemas
+│   │   └── category.py              # Category schemas
+│   │
+│   └── 📁 crud/                     # CRUD operations
+│       ├── __init__.py
+│       ├── base.py                  # Base CRUD class
+│       ├── user.py                  # User CRUD
+│       ├── task.py                  # Task CRUD
+│       └── category.py              # Category CRUD
+│
+├── 📁 tests/                        # Tests
+│   ├── __init__.py
+│   ├── conftest.py                  # ✅ Pytest configuration
+│   ├── test_main.py                 # ✅ Basic tests
+│   ├── test_auth.py                 # Auth tests (task #35)
+│   ├── test_tasks.py                # Task CRUD tests (task #37)
+│   └── test_integration.py          # Integration tests (task #38)
+│
+├── 📁 alembic/                      # Database migrations
+│   ├── versions/                    # Migration files
+│   ├── env.py                       # Alembic environment
+│   └── script.py.mako              # Migration template
+│
+├── 📄 .env.example                  # ✅ Environment variables template
+├── 📄 .gitignore                    # ✅ Git ignore rules
+├── 📄 alembic.ini                   # ✅ Alembic configuration
+├── 📄 requirements.txt              # ✅ Python dependencies
+├── 📄 Makefile                      # ✅ Development commands
+├── 📄 README.md                     # ✅ Project documentation
+├── 📄 SETUP_GUIDE.md               # ✅ Setup instructions
+└── 📄 setup_structure.sh           # ✅ Structure creation script
+
+
+Legend:
+-------
+✅ - Created in task #1
+📁 - Directory
+📄 - File
+🔜 - To be created in future tasks
+
+Task Dependencies:
+------------------
+Task #1 (✅ CURRENT) → Creates basic structure
+Task #2 → Database configuration (db/session.py)
+Task #5 → User model (models/user.py)
+Task #6 → Task model (models/task.py)
+Task #7 → Category model (models/category.py)
+Task #8-11 → Authentication endpoints
+Task #12-47 → Feature endpoints
