@@ -1,9 +1,12 @@
 """
 SQLAlchemy models.
 
-Task #2: Only Base class is configured.
-Specific models (User, Task, Category) will be added in future tasks.
+All models are imported here for Alembic autogenerate to work.
 """
 from app.db.session import Base
+from app.models.user import User
 
-__all__ = ["Base"]
+__all__ = [
+    "Base",
+    "User",
+]
