@@ -1,117 +1,156 @@
-.PHONY: help setup install run test format lint clean db-up db-down db-restart migration migrate env-create
+.PHONY: help setup run test test-cov clean format lint migration migrate \
+        db-up db-down db-restart \
+        docker-build docker-up docker-down docker-restart \
+        docker-logs docker-logs-backend docker-logs-db \
+        docker-shell docker-shell-db docker-clean docker-ps \
+        docker-migrate docker-migration docker-test docker-test-cov \
+        dev dev-stop dev-restart
 
-help:
-	@echo "PyTaskHub Backend - Available commands:"
+# Default target
+.DEFAULT_GOAL := help
+
+help:  ## Show this help message
+	@echo "PyTaskHub - Available commands:"
 	@echo ""
-	@echo "Setup:"
-	@echo "  make setup        - Complete project setup (first time)"
-	@echo "  make env-create   - Create .env from .env.example"
-	@echo "  make install      - Install dependencies"
-	@echo ""
-	@echo "Development:"
-	@echo "  make run          - Run development server"
-	@echo "  make test         - Run tests with coverage"
-	@echo "  make format       - Format code with black and isort"
-	@echo "  make lint         - Lint code with flake8"
-	@echo "  make clean        - Clean cache files"
-	@echo ""
-	@echo "Database:"
-	@echo "  make db-up        - Start PostgreSQL in Docker"
-	@echo "  make db-down      - Stop PostgreSQL"
-	@echo "  make db-restart   - Restart PostgreSQL"
-	@echo "  make migration    - Create new migration (usage: make migration message='description')"
-	@echo "  make migrate      - Apply migrations"
-	@echo ""
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-setup: env-create install db-up
-	@echo " Project setup complete!"
-	@echo "Next steps:"
-	@echo "  1. Edit .env and set your SECRET_KEY"
-	@echo "  2. Run: make migrate"
-	@echo "  3. Run: make run"
+# ============================================================================
+# Development Commands
+# ============================================================================
 
-env-create:
-	@if [ ! -f .env ]; then \
-		cp .env.example .env; \
-		echo " Created .env from .env.example"; \
-		echo "️  Don't forget to set SECRET_KEY in .env!"; \
-	else \
-		echo "️  .env already exists, skipping..."; \
-	fi
+setup:  ## Setup project (install dependencies, create .env)
+	@echo "Setting up PyTaskHub..."
+	python3 -m venv venv
+	. venv/bin/activate && pip install --upgrade pip
+	. venv/bin/activate && pip install -r requirements.txt
+	cp .env.example .env
+	@echo "Setup complete. Edit .env file with your settings."
 
-install:
-	@echo " Installing dependencies..."
-	pip install --upgrade pip
-	pip install -r requirements.txt
-	@echo " Dependencies installed"
-
-run:
-	@echo " Starting development server..."
+run:  ## Run development server
 	uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-test:
-	@echo " Running tests..."
-	pytest -v --cov=app --cov-report=html --cov-report=term
-	@echo " Tests complete. Coverage report: htmlcov/index.html"
+test:  ## Run tests
+	pytest -v
 
-format:
-	@echo " Formatting code..."
-	black app tests
-	isort app tests
-	@echo " Code formatted"
+test-cov:  ## Run tests with coverage
+	pytest --cov=app --cov-report=html --cov-report=term -v
 
-lint:
-	@echo " Linting code..."
-	flake8 app tests --max-line-length=100
-	@echo " Linting complete"
-
-clean:
-	@echo " Cleaning cache files..."
+clean:  ## Clean cache and temporary files
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	find . -type f -name "*.pyc" -delete 2>/dev/null || true
-	find . -type f -name "*.pyo" -delete 2>/dev/null || true
+	find . -type f -name "*.pyc" -delete
+	find . -type f -name "*.pyo" -delete
 	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
-	rm -rf .pytest_cache 2>/dev/null || true
-	rm -rf htmlcov 2>/dev/null || true
-	rm -rf .coverage 2>/dev/null || true
-	rm -rf dist 2>/dev/null || true
-	rm -rf build 2>/dev/null || true
-	@echo " Cache cleaned"
+	rm -rf .pytest_cache htmlcov .coverage
 
-db-up:
-	@echo " Starting PostgreSQL..."
-	@docker ps -a --format '{{.Names}}' | grep -q pytaskhub-db && \
-		(echo "️  Container pytaskhub-db already exists. Use 'make db-restart' to restart.") || \
-		(docker run -d \
-			--name pytaskhub-db \
-			-e POSTGRES_USER=postgres \
-			-e POSTGRES_PASSWORD=postgres \
-			-e POSTGRES_DB=pytaskhub \
-			-p 5432:5432 \
-			postgres:15 && \
-		echo " PostgreSQL started on port 5432")
+# ============================================================================
+# Code Quality
+# ============================================================================
 
-db-down:
-	@echo " Stopping PostgreSQL..."
-	@docker stop pytaskhub-db 2>/dev/null || true
-	@docker rm pytaskhub-db 2>/dev/null || true
-	@echo " PostgreSQL stopped"
+format:  ## Format code with black and isort
+	black app/ tests/
+	isort app/ tests/
 
-db-restart: db-down db-up
-	@echo " PostgreSQL restarted"
+lint:  ## Lint code with flake8
+	flake8 app/ tests/
 
-migration:
-	@if [ -z "$(message)" ]; then \
-		echo " Error: message is required"; \
-		echo "Usage: make migration message='Your migration description'"; \
-		echo "Example: make migration message='Add email column to users'"; \
-		exit 1; \
-	fi
-	@echo " Creating migration: $(message)"
+# ============================================================================
+# Database Commands (Local)
+# ============================================================================
+
+migration:  ## Create new migration (usage: make migration message="your message")
 	alembic revision --autogenerate -m "$(message)"
-	@echo " Migration created"
 
-migrate:
-	@echo "️  Applying migrations..."
+migrate:  ## Apply migrations
 	alembic upgrade head
-	@echo " Migrations applied"
+
+db-up:  ## Start PostgreSQL in Docker (local development)
+	docker run -d \
+		--name pytaskhub-db \
+		-e POSTGRES_USER=postgres \
+		-e POSTGRES_PASSWORD=postgres \
+		-e POSTGRES_DB=pytaskhub \
+		-p 5432:5432 \
+		postgres:15
+
+db-down:  ## Stop PostgreSQL
+	docker stop pytaskhub-db 2>/dev/null || true
+	docker rm pytaskhub-db 2>/dev/null || true
+
+db-restart:  ## Restart PostgreSQL
+	$(MAKE) db-down
+	$(MAKE) db-up
+
+# ============================================================================
+# Docker Compose Commands
+# ============================================================================
+
+docker-build:  ## Build Docker images
+	docker-compose build
+
+docker-up:  ## Start all services with Docker Compose
+	docker-compose up -d
+
+docker-down:  ## Stop all services
+	docker-compose down
+
+docker-restart:  ## Restart all services
+	docker-compose restart
+
+docker-logs:  ## Show logs from all services
+	docker-compose logs -f
+
+docker-logs-backend:  ## Show backend logs only
+	docker-compose logs -f backend
+
+docker-logs-db:  ## Show database logs only
+	docker-compose logs -f db
+
+docker-shell:  ## Open shell in backend container
+	docker-compose exec backend /bin/sh
+
+docker-shell-db:  ## Open PostgreSQL shell
+	docker-compose exec db psql -U postgres -d pytaskhub
+
+docker-clean:  ## Remove all containers, volumes, and images
+	docker-compose down -v
+	docker system prune -f
+
+docker-ps:  ## Show running containers
+	docker-compose ps
+
+docker-migrate:  ## Run migrations in Docker
+	docker-compose exec backend alembic upgrade head
+
+docker-migration:  ## Create migration in Docker
+	docker-compose exec backend alembic revision --autogenerate -m "$(message)"
+
+docker-test:  ## Run tests in Docker
+	docker-compose exec backend pytest -v
+
+docker-test-cov:  ## Run tests with coverage in Docker
+	docker-compose exec backend pytest --cov=app --cov-report=html --cov-report=term -v
+
+# ============================================================================
+# Combined Commands
+# ============================================================================
+
+dev:  ## Start development environment (Docker Compose)
+	$(MAKE) docker-up
+	@echo ""
+	@echo "Development environment started."
+	@echo "API Documentation: http://localhost:8000/api/docs"
+	@echo "Database: postgresql://postgres:postgres@localhost:5432/pytaskhub"
+	@echo ""
+	@echo "Useful commands:"
+	@echo "  make docker-logs        - View logs"
+	@echo "  make docker-shell       - Open backend shell"
+	@echo "  make docker-migrate     - Run migrations"
+	@echo "  make docker-test        - Run tests"
+
+dev-stop:  ## Stop development environment
+	$(MAKE) docker-down
+	@echo "Development environment stopped."
+
+dev-restart:  ## Restart development environment
+	$(MAKE) docker-restart
+	@echo "Development environment restarted."

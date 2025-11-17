@@ -216,6 +216,83 @@ make test
 
 Отчет о покрытии будет доступен в `htmlcov/index.html`.
 
+## Docker Deployment
+
+### Быстрый старт с Docker
+
+#### 1. Создать .env файл
+```bash
+cp .env.example .env
+# Отредактируйте SECRET_KEY и другие переменные
+```
+
+#### 2. Запустить контейнеры
+```bash
+# Собрать и запустить
+docker-compose up -d
+
+# Или через Makefile
+make dev
+```
+
+#### 3. Применить миграции
+```bash
+docker-compose exec backend alembic upgrade head
+
+# Или через Makefile
+make docker-migrate
+```
+
+#### 4. Доступ к приложению
+- API: http://localhost:8000
+- Swagger UI: http://localhost:8000/api/docs
+- ReDoc: http://localhost:8000/api/redoc
+
+### Управление Docker
+```bash
+# Просмотр логов
+docker-compose logs -f
+make docker-logs
+
+# Логи только backend
+make docker-logs-backend
+
+# Открыть shell в контейнере
+docker-compose exec backend /bin/sh
+make docker-shell
+
+# Остановить контейнеры
+docker-compose down
+make dev-stop
+
+# Перезапустить
+docker-compose restart
+make dev-restart
+
+# Запустить тесты в Docker
+docker-compose exec backend pytest
+make docker-test
+```
+
+### Troubleshooting
+
+**Проблема:** Контейнер не запускается
+```bash
+docker-compose logs
+```
+
+**Проблема:** Сбросить все данные
+```bash
+docker-compose down -v
+docker-compose up -d
+```
+
+**Проблема:** Порт 8000 занят
+```bash
+# Изменить порт в .env
+PORT=8001
+```
+
 ## API Endpoints
 
 ### Authentication
