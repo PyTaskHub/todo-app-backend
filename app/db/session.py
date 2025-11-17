@@ -17,14 +17,17 @@ class Base(DeclarativeBase):
     All models should inherit from this class.
     Automatically includes: id, created_at, updated_at
     """
-    id: int = Column(Integer, primary_key=True, index=True)
-    created_at: DateTime = Column(
+    # Allow unmapped attributes for SQLAlchemy 2.0 compatibility
+    __allow_unmapped__ = True
+
+    id = Column(Integer, primary_key=True, index=True)
+    created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
         comment="Timestamp when the record was created"
     )
-    updated_at: DateTime = Column(
+    updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
