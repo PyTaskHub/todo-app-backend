@@ -6,9 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.schemas.user import UserCreate, UserResponse, UserLogin
-from app.schemas.token import Token
-from app.crud.user import get_user_by_email, get_user_by_username, create_user
-from app.core.security import create_access_token, create_refresh_token
+from app.schemas.token import Token, RefreshTokenRequest, AccessTokenResponse
+from app.crud.user import get_user_by_email, get_user_by_username, create_user, get_user_by_id
+from app.core.security import create_access_token, create_refresh_token, verify_token
 
 
 router = APIRouter()
@@ -104,5 +104,67 @@ async def login(
     )
 
 
-# TODO: Task #10 - Implement refresh token endpoint
-# TODO: Task #10 - Implement JWT middleware for protected routes
+@router.post("/refresh", response_model=AccessTokenResponse)
+async def refresh_access_token(
+        request: RefreshTokenRequest,
+        db: AsyncSession = Depends(get_db)
+) -> AccessTokenResponse:
+    """
+    Refresh access token using refresh token.
+
+    - **refresh_token**: valid refresh token from login
+
+    Returns new access_token.
+    """
+    # Verify and decode refresh token
+    payload = verify_token(request.refresh_token)
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Check token type
+    token_type = payload.get("type")
+    if token_type != "refresh":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token type",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Extract user_id from token
+    user_id: int = payload.get("user_id")
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Get user from database
+    user = await get_user_by_id(db, user_id=user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Check if user is active
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Inactive user"
+        )
+
+    # Create new access token
+    access_token = create_access_token(
+        data={"sub": user.email, "user_id": user.id, "username": user.username}
+    )
+
+    return AccessTokenResponse(
+        access_token=access_token,
+        token_type="bearer"
+    )
