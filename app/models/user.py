@@ -53,7 +53,7 @@ class User(Base):
 
     # Relationships (будут добавлены в задачах #6, #7)
     # tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")
-    # categories = relationship("Category", back_populates="user", cascade="all, delete-orphan")
+    categories = relationship("Category", back_populates="user", cascade="all, delete-orphan")
 
     def set_password(self, password: str) -> None:
         """
