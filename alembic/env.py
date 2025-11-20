@@ -13,7 +13,7 @@ from alembic import context
 # Import your models here for autogenerate to work
 from app.db.session import Base
 from app.core.config import settings
-from app.models import User
+from app.models import User, Category
 
 # this is the Alembic Config object
 config = context.config
