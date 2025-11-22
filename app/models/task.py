@@ -88,7 +88,7 @@ class Task(Base):
     )
     description = Column(
         Text, 
-        nullable=False,
+        nullable=True,
         comment="Optional detailed description of the task"
     )
 

@@ -27,4 +27,4 @@ class Category(Base):
     )
 
     user = relationship("User", back_populates="categories")
-    # task = relationship("Task", back_populates="category")
+    tasks = relationship("Task", back_populates="category")
