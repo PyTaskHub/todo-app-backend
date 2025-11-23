@@ -12,7 +12,7 @@ from app.crud.task import create_task
 router = APIRouter()
 
 @router.post(
-    "",
+    "/",
     response_model=TaskResponse,
     status_code=status.HTTP_201_CREATED
 )

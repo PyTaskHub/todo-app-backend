@@ -55,7 +55,7 @@ async def create_task(
         if category is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Category doesnt exist or doesnt belong to the user"
+                detail="Category doesn't exist or doesn't belong to the user"
             )
         
     # Create task instance
