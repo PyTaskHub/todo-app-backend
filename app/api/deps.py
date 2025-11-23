@@ -12,27 +12,35 @@ from app.core.security import verify_token
 from app.crud.user import get_user_by_id
 from app.models.user import User
 
-# HTTP Bearer token scheme
-security = HTTPBearer()
+# HTTP Bearer token scheme - не выбрасывает автоматически ошибку
+security = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
-        credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
-        db: Annotated[AsyncSession, Depends(get_db)]
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+    db: Annotated[AsyncSession, Depends(get_db)]
 ) -> User:
     """
     Get current authenticated user from JWT token.
 
     Args:
-        credentials: Bearer token from Authorization header
+        credentials: Bearer token from Authorization header (can be None)
         db: Database session
 
     Returns:
         Current authenticated User object
 
     Raises:
-        HTTPException: 401 if token is invalid or user not found
+        HTTPException: 401 if token is missing, invalid, or user not found
     """
+    # Проверка наличия токена
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     token = credentials.credentials
 
     # Verify and decode token
