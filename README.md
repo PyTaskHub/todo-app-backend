@@ -204,7 +204,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Или через Makefile
 make run
-````
+```
 
 **Примечание:** Команду `alembic upgrade head` нужно выполнять только:
 
