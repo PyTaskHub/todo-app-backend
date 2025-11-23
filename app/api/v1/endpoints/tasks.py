@@ -9,7 +9,7 @@ from app.api.deps import CurrentUser, get_db
 from app.schemas.task import TaskCreate, TaskResponse
 from app.crud.task import create_task
 
-router = APIRouter(prefix="/api/tasks", tags=["Tasks"])
+router = APIRouter()
 
 @router.post(
     "",
