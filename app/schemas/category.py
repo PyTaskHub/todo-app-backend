@@ -23,6 +23,7 @@ class CategoryCreate(CategoryBase):
 
 class CategoryResponse(CategoryBase):
     id: int
+    user_id: int
     created_at: datetime
     updated_at: datetime
     model_config = ConfigDict(from_attributes=True) #разрешаем создание из ORM объектов

@@ -19,12 +19,12 @@ router = APIRouter()
      )
 async def create_new_category(
         current_user: CurrentUser,
-        category: CategoryCreate,
+        category_in: CategoryCreate,
         db: AsyncSession = Depends(get_db)
 ) -> CategoryResponse:
     category = await create_category(
       db=db,
-      category=category,
+      category=category_in,
       current_user_id=current_user.id,
     )
 

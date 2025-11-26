@@ -47,7 +47,7 @@ async def create_category(db: AsyncSession, current_user_id: int, category: Cate
     if existing_category:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Category already exist"
+            detail="Category already exists"
         )
     # Create category instance
     db_category = Category(
