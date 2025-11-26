@@ -44,6 +44,35 @@ class TaskCreate(TaskBase):
     """
     pass
 
+
+class TaskUpdate(BaseModel):
+    """
+    Schema for updating task information.
+    All fields are optional.
+    """
+    title: Optional[str] = Field(
+        None,
+        max_length=200,
+        description="New title",
+    )
+
+    description: Optional[str] = Field(
+        None,
+        description="New description"
+    )
+    category_id: Optional[int] = Field(
+        None,
+        description="New Category ID"
+    )
+    priority: Optional[Priority] = Field(
+        None,
+        description="New priority (low, medium, high)"
+    )
+    due_date: Optional[datetime] = Field(
+        None,
+        description="New due date"
+    )
+
 class TaskResponse(TaskBase):
     """
     Schema for returning task information in API responses.
@@ -74,3 +103,4 @@ class TaskResponse(TaskBase):
     )
 
     model_config = ConfigDict(from_attributes=True)
+
