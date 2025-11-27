@@ -5,7 +5,7 @@ from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Path, status
 
 from app.models.task import Task, Priority, Status
 from app.models.category import Category
@@ -139,3 +139,47 @@ async def update_task(
     await db.refresh(task)
 
     return task
+
+async def get_task_by_id(
+        db: AsyncSession,
+        user_id: int,
+        task_id: int = Path(..., title="ID of category")
+) -> Task:
+    """
+    Get single task by id.
+
+    Args:
+        db: database session
+        user_id: id from authenticated user which create task
+        task_id: task id from request
+    Returns:
+        Task object
+    """
+    result = await db.execute(select(Task).where(
+    Task.id == task_id,
+    Task.user_id == user_id
+    ))
+ 
+    task_by_id = result.scalar_one_or_none()
+
+    # Check if task is exists
+    if task_by_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category doesn't exists or doesn't belong to current user"
+        )
+    
+    # If task contains category
+    if task_by_id.category_id is not None:
+        category = await get_category_if_owned(db, task_by_id.category_id, user_id)
+        if category is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Category doesn't exist or doesn't belong to the user"
+            )
+        task_by_id.category_name = category.name
+        if category.description is not None:
+            task_by_id.category_description = category.description
+        return task_by_id
+
+    return task_by_id

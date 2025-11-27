@@ -102,5 +102,16 @@ class TaskResponse(TaskBase):
         description="timestamp when task was completed"
     )
 
+    category_name: Optional[str] = Field(
+        None,
+        min_length=3,
+        max_length=100,
+        description="Category name (3 - 100 characters, optional field)"
+     )
+    category_description: Optional[str] = Field(
+        None,
+        description="Category description (optional field)"
+     )
+
     model_config = ConfigDict(from_attributes=True)
 
