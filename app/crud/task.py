@@ -118,20 +118,20 @@ async def update_task(
     if task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found or doens't belong to the user"
+            detail="Task not found or doesn't belong to the user"
         )
     
     if task_in.category_id is not None:
         category = await get_category_if_owned(db, task_in.category_id, user_id)
         if category is None:
             raise HTTPException(
-                status=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Category doesn't exist or doesn't belong to the user"
             )
         
-    update_task = task_in.model_dump(exclude_unset=True)
+    update_data = task_in.model_dump(exclude_unset=True)
 
-    for field, value in update_task.items():
+    for field, value in update_data.items():
         setattr(task, field, value)
 
     db.add(task)

@@ -55,11 +55,12 @@ async def update_existing_task(
 
     - **Authentication required**
     - Only the task owner can update the task
-    - Any field can be updated (**title**, **description**, **priority**, **due_date**, **status**, **category_id**)
-    - **updated_at** updates automatically
-
+    - Fields: **title**, **description**, **priority**, **due_date**, **category_id**
+    - **status** can be updated via the /complete and /incomplete endpoints
+    
     Returns updated task.
     """
+
     updated_task = await update_task(
         db=db,
         task_id=task_id,
