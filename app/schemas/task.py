@@ -101,6 +101,35 @@ class TaskResponse(TaskBase):
         None, 
         description="timestamp when task was completed"
     )
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TaskListResponse(BaseModel):
+    """
+    Response schema for returning a paginated list of tasks.
+    """
+    items: list[TaskResponse] = Field(
+        ...,
+        description="Lists of tasks",
+    )
+
+    total: int = Field(
+        ...,
+        description="Total number of tasks for the current user",
+    ) 
+
+    limit: int = Field(
+        ...,
+        description="Pagination limit",
+        examples=[20],
+    )
+
+    offset: int = Field(
+        ...,
+        description="Pagination offset",
+        examples=[0],
+    )
 
     model_config = ConfigDict(from_attributes=True)
 
