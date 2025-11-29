@@ -3,11 +3,12 @@ CRUD operations for Category model.
 """
 from typing import Optional
 from fastapi import HTTPException, Path, status
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.category import Category
 from app.schemas.category import CategoryCreate, CategoryUpdate
+from app.models.task import Task
 
 async def get_category_by_user(
         db: AsyncSession, 
@@ -95,8 +96,6 @@ async def create_category(
 
     return db_category
 
-
-
 async def update_category(
         db: AsyncSession, 
         new_category: CategoryUpdate, 
@@ -147,3 +146,27 @@ async def update_category(
     await db.refresh(existing_category)
 
     return existing_category
+
+async def get_user_categories_with_tasks_count(db: AsyncSession, user_id: int):
+    """
+    Get all categories of user with tasks count.
+
+    - Returns only categories of given user
+    - Sorted by category name (A-Z)
+    - Includes tasks_count for each category
+    """
+    stmt = (
+        select(
+            Category,
+            func.count(Task.id).label("tasks_count"),
+        )
+        .outerjoin(Task, Task.category_id == Category.id)
+        .where(Category.user_id == user_id)
+        .group_by(Category.id)
+        .order_by(Category.name.asc())
+    )
+
+    result = await db.execute(stmt)
+    # rows: list[Row[Category, int]]
+    return result.all()
+

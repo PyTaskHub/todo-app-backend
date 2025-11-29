@@ -29,4 +29,24 @@ class CategoryResponse(CategoryBase):
     model_config = ConfigDict(from_attributes=True) #разрешаем создание из ORM объектов
 
 class CategoryUpdate(CategoryBase):
-   pass    
+   pass
+
+class CategoryListItem(CategoryBase):
+    id: int
+    tasks_count: int
+    created_at: datetime
+    
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "examples": [
+                {
+                    "id": 1,
+                    "name": "Work",
+                    "description": "Задачи по работе",
+                    "tasks_count": 3,
+                    "created_at": "2025-11-25T10:00:00Z",
+                }
+            ]
+        },
+    )
