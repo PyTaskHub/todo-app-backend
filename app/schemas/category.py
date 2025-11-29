@@ -29,7 +29,19 @@ class CategoryResponse(CategoryBase):
     model_config = ConfigDict(from_attributes=True) #разрешаем создание из ORM объектов
 
 class CategoryUpdate(CategoryBase):
-   pass
+  """
+  Schema for updating category. All fields are optional.
+  """
+  name: Optional[str] = Field(
+        None,
+        min_length=3,
+        max_length=100,
+        description="New category name"
+    )
+  description: Optional[str] = Field(
+        None,
+        description="New category description"
+    )  
 
 class CategoryListItem(CategoryBase):
     id: int

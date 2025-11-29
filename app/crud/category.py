@@ -123,25 +123,27 @@ async def update_category(
     if existing_category is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Category doesn't exists or doesn't belong to current user"
+            detail="Category not found or doesn't belong to current user"
         )
     
-    # Check uniq category name
-    category_with_same_name = await get_category_by_user(
+    update_data = new_category.model_dump(exclude_unset=True)
+    # Check uniq category name only if category name changes
+    if "name" in update_data and update_data["name"] != existing_category.name:
+      category_with_same_name = await get_category_by_user(
         db, 
         category_name=new_category.name,
         current_user_id=current_user_id 
     )
-    if category_with_same_name:
+      if category_with_same_name:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Category with same name already exsists"
+            detail="Category with this name already exists"
         )
-    
-    # Add changes to database
-    existing_category.name = new_category.name
-    existing_category.description = new_category.description
-    
+      existing_category.name = update_data["name"]
+
+    if "description" in update_data:
+      existing_category.description = new_category.description
+  
     await db.commit()
     await db.refresh(existing_category)
 
