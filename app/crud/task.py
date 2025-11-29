@@ -149,7 +149,7 @@ async def get_tasks_for_user(
     """
     Get list of tasks for the user with pagination.
     
-    Agrs: 
+    Args: 
         limit: pagination limit
         offset: pagination offset
     
