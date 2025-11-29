@@ -13,7 +13,12 @@ from app.crud.user import get_user_by_id
 from app.models.user import User
 
 # HTTP Bearer token scheme - не выбрасывает автоматически ошибку
-security = HTTPBearer(auto_error=False)
+security = HTTPBearer(
+    auto_error=False,
+    bearerFormat="JWT",
+    scheme_name="BearerAuth",
+    description="JWT Bearer token. Use 'Bearer <access_token>' from /api/v1/auth/login."
+)
 
 
 async def get_current_user(
