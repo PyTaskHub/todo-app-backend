@@ -4,6 +4,7 @@ Task management endpoints.
 from fastapi import APIRouter, Depends, status, Query
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Literal
 
 from app.api.deps import CurrentUser, get_db
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskListResponse
@@ -106,23 +107,28 @@ async def get_tasks(
     current_user: CurrentUser,
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    status_filter: Literal["all", "pending", "completed"] = Query("all"),
     db: AsyncSession = Depends(get_db),
 ) -> TaskListResponse:
     """
-    Get paginated list of tasks for authenticated user.
+    Get paginated and filtered list of tasks for the authenticated user.
 
     - **Authentication required**
     - Returns only tasks belonging to the current user
     - Sorted by created_at (newest first)
-    - Supports pagination via limit & offset
-
+    - Supports pagination via **limit** and **offset**
+    - Supports filtering by **status**:
+        - **all** (default) — return all tasks
+        - **pending** — only incomplete tasks
+        - **completed** — only completed tasks
     """
     
     items, total = await get_tasks_for_user(
         db=db,
         user_id=current_user.id,
         limit=limit,
-        offset=offset
+        offset=offset,
+        status_filter=status_filter
     )
 
     return TaskListResponse(

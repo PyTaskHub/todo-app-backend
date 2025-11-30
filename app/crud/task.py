@@ -177,22 +177,36 @@ async def get_tasks_for_user(
     db: AsyncSession,
     user_id: int,
     limit: int = 20,
-    offset: int = 0
+    offset: int = 0,
+    status_filter: str = "all",
 ) -> tuple[list[Task], int]:
     """
-    Get list of tasks for the user with pagination.
+    Get list of tasks for the user with optional status filtering and pagination.
     
-    Args: 
+    Args:
         limit: pagination limit
         offset: pagination offset
+        status_filter: task status filter:
+            - "all"        — return all tasks
+            - "pending"    — only incomplete tasks
+            - "completed"  — only finished tasks
     
     Returns:
-        items, total
+            items: list of Task objects
+            total: total number of tasks matching the filter
     """
     query = (
         select(Task)
         .where(Task.user_id == user_id)
-        .order_by(Task.created_at.desc())
+    )
+
+    if status_filter == "pending":
+        query = query.where(Task.status == Status.pending)
+    elif status_filter == "completed":
+        query = query.where(Task.status == Status.completed)
+    
+    query = (
+        query.order_by(Task.created_at.desc())
         .limit(limit)
         .offset(offset)
     )
@@ -201,6 +215,12 @@ async def get_tasks_for_user(
     items = result.scalars().all()
 
     count_query = select(func.count()).where(Task.user_id == user_id)
+
+    if status_filter == "pending":
+        count_query = count_query.where(Task.status == Status.pending)
+    elif status_filter == "completed":
+        count_query = count_query.where(Task.status == Status.completed)
+
     total = (await db.execute(count_query)).scalar()
 
     return items, total
