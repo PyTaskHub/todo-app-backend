@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser
-from app.crud.category import create_category, delete_category
-from app.schemas.category import CategoryCreate, CategoryResponse
+from app.crud.category import create_category, get_user_categories_with_tasks_count, delete_category
+from app.schemas.category import CategoryCreate, CategoryResponse, CategoryListItem
 from app.db.session import get_db
 
 router = APIRouter()
@@ -30,6 +30,40 @@ async def create_new_category(
     )
 
     return category
+
+@router.get(
+  "/",
+  response_model=list[CategoryListItem],
+  status_code=status.HTTP_200_OK
+  )
+
+async def get_user_categories(
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),
+) -> list[CategoryListItem]:
+    """
+    Get list of all categories for current user.
+
+    - Requires Authorization header with Bearer token
+    - Returns only categories of current user
+    - Sorted by name in ascending order (A-Z)
+    - Includes tasks_count for each category
+    """
+    rows = await get_user_categories_with_tasks_count(
+        db=db,
+        user_id=current_user.id,
+    )
+
+    return [
+        CategoryListItem(
+            id=category.id,
+            name=category.name,
+            description=category.description,
+            tasks_count=tasks_count,
+            created_at=category.created_at,
+        )
+        for category, tasks_count in rows
+    ]
 
 @router.delete(
     "/{category_id}",
@@ -58,4 +92,3 @@ async def delete_existing_category(
         category_id=category_id,
         user_id=current_user.id,
     )
-  
