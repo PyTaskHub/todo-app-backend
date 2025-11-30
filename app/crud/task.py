@@ -3,7 +3,7 @@ CRUD operations for Task model.
 """
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, Path, status
 
@@ -183,3 +183,35 @@ async def get_task_by_id(
         return task_by_id
 
     return task_by_id
+
+async def get_tasks_for_user(
+    db: AsyncSession,
+    user_id: int,
+    limit: int = 20,
+    offset: int = 0
+) -> tuple[list[Task], int]:
+    """
+    Get list of tasks for the user with pagination.
+    
+    Args: 
+        limit: pagination limit
+        offset: pagination offset
+    
+    Returns:
+        items, total
+    """
+    query = (
+        select(Task)
+        .where(Task.user_id == user_id)
+        .order_by(Task.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    
+    result = await db.execute(query)
+    items = result.scalars().all()
+
+    count_query = select(func.count()).where(Task.user_id == user_id)
+    total = (await db.execute(count_query)).scalar()
+
+    return items, total

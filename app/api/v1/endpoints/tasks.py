@@ -1,14 +1,13 @@
 """
 Task management endpoints.
 """
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser, get_db
-from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
-from app.crud.task import create_task, update_task, get_task_by_id
-from app.schemas.task import TaskCreate, TaskResponse
+from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskListResponse
+from app.crud.task import create_task, update_task, get_task_by_id, get_tasks_for_user
 
 router = APIRouter()
 
@@ -98,3 +97,38 @@ async def get_single_task(
     )
 
     return task
+
+@router.get(
+    "/",
+    response_model=TaskListResponse,
+    status_code=status.HTTP_200_OK
+)    
+async def get_tasks(
+    current_user: CurrentUser,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+) -> TaskListResponse:
+    """
+    Get paginated list of tasks for authenticated user.
+
+    - **Authentication required**
+    - Returns only tasks belonging to the current user
+    - Sorted by created_at (newest first)
+    - Supports pagination via limit & offset
+
+    """
+    
+    items, total = await get_tasks_for_user(
+        db=db,
+        user_id=current_user.id,
+        limit=limit,
+        offset=offset
+    )
+
+    return TaskListResponse(
+        items=items,
+        total=total,
+        limit=limit,
+        offset=offset,
+    )

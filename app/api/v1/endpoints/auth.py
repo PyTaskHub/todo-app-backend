@@ -14,7 +14,39 @@ from app.core.security import create_access_token, create_refresh_token, verify_
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", 
+    response_model=UserResponse, 
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new user",
+    description="Create a new user account with a unique username and email",
+    responses={
+        201: {
+            "description": "User successfully registered.",
+        },
+        409: {
+            "description": "User with the same email or username already exists.",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "email_conflict": {
+                            "summary": "Email already registered",
+                            "value": {"detail": "Email already registered"},
+                        },
+                        "username_conflict": {
+                            "summary": "Username already taken",
+                            "value": {"detail": "Username already taken"},
+                        },
+                    }
+                }
+            },
+        },
+        422: {
+            "description": "Validation error. The request body does not match the expected schema.",
+        },
+
+    },
+)
 async def register(
     user_in: UserCreate,
     db: AsyncSession = Depends(get_db)
@@ -32,7 +64,7 @@ async def register(
     existing_user = await get_user_by_email(db, email=user_in.email)
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
             detail="Email already registered"
         )
 
@@ -40,7 +72,7 @@ async def register(
     existing_user = await get_user_by_username(db, username=user_in.username)
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
             detail="Username already taken"
         )
 
@@ -50,7 +82,37 @@ async def register(
     return user
 
 
-@router.post("/login", response_model=Token)
+@router.post(
+    "/login", 
+    response_model=Token,
+    summary="Login user",
+    description="Authenticate user by email and password and return a pair of JWT tokens",
+    responses={
+        200: {
+            "description": "Successful authentication. Returns access and refresh tokens.",
+        },
+        401: {
+            "description": "Invalid credentials or inactive user.",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "invalid_credentials": {
+                            "summary": "Wrong email or password",
+                            "value": {"detail": "Incorrect email or password"},
+                        },
+                        "inactive_user": {
+                            "summary": "Inactive user",
+                            "value": {"detail": "Inactive user"},
+                        },
+                    }
+                }
+            },
+        },
+        422: {
+            "description": "Validation error. The request body does not match the expected schema.",
+        },
+    },
+)
 async def login(
     credentials: UserLogin,
     db: AsyncSession = Depends(get_db)
@@ -85,8 +147,9 @@ async def login(
     # Check if user is active
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Inactive user",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     # Create tokens
@@ -104,7 +167,41 @@ async def login(
     )
 
 
-@router.post("/refresh", response_model=AccessTokenResponse)
+@router.post(
+    "/refresh", 
+    response_model=AccessTokenResponse,
+    summary="Refresh access token",
+    description="Exchange a valid refresh token for a new access token",
+    responses={
+        200: {
+            "description": "Access token successfully refreshed.",
+        },
+        401: {
+            "description": "Invalid or expired refresh token, user not found or inactive.",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "invalid_token": {
+                            "summary": "Invalid token",
+                            "value": {"detail": "Invalid token"},
+                        },
+                        "user_not_found": {
+                            "summary": "User not found",
+                            "value": {"detail": "User not found"},
+                        },
+                        "inactive_user": {
+                            "summary": "Inactive user",
+                            "value": {"detail": "Inactive user"},
+                        },
+                    }
+                }
+            },
+        },
+        422: {
+            "description": "Validation error. The request body does not match the expected schema.",
+        },
+    },
+)
 async def refresh_access_token(
         request: RefreshTokenRequest,
         db: AsyncSession = Depends(get_db)
@@ -155,8 +252,9 @@ async def refresh_access_token(
     # Check if user is active
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Inactive user",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     # Create new access token
