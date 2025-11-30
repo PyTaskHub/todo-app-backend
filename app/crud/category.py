@@ -2,7 +2,7 @@
 CRUD operations for Category model.
 """
 from typing import Optional
-from fastapi import HTTPException, Path, status
+from fastapi import HTTPException, status
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,7 +35,7 @@ async def get_category_by_user(
 async def get_category_by_id(
         db: AsyncSession, 
         current_user_id: int, 
-        category_id: int = Path(..., title="ID of category")
+        category_id: int
         ):
     """
     Get category by category id.
