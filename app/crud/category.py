@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.category import Category
 from app.models.task import Task
 from app.schemas.category import CategoryCreate
-from app.models.task import Task
 
 async def get_category_by_user(db: AsyncSession, category_name: str, current_user_id: int) -> Optional[Category]:
     """
