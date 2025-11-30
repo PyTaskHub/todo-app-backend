@@ -5,7 +5,7 @@ from typing import Optional
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, Path, status
+from fastapi import HTTPException, status
 
 from app.models.task import Task, Priority, Status
 from app.models.category import Category
