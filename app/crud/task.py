@@ -143,7 +143,7 @@ async def update_task(
 async def get_task_by_id(
         db: AsyncSession,
         user_id: int,
-        task_id: int = Path(..., title="ID of category")
+        task_id: int
 ) -> Task:
     """
     Get single task by id.
@@ -155,33 +155,22 @@ async def get_task_by_id(
     Returns:
         Task object
     """
-    result = await db.execute(select(Task).where(
-    Task.id == task_id,
-    Task.user_id == user_id
-    ))
- 
-    task_by_id = result.scalar_one_or_none()
+    task_by_id = await get_task_if_owned(db, task_id, user_id)
 
     # Check if task is exists
     if task_by_id is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Category doesn't exists or doesn't belong to current user"
+            detail="Task not found"
         )
     
     # If task contains category
     if task_by_id.category_id is not None:
         category = await get_category_if_owned(db, task_by_id.category_id, user_id)
-        if category is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Category doesn't exist or doesn't belong to the user"
-            )
-        task_by_id.category_name = category.name
-        if category.description is not None:
-            task_by_id.category_description = category.description
-        return task_by_id
-
+        if category:  
+          task_by_id.category_name = category.name
+          task_by_id.category_description = category.description
+          
     return task_by_id
 
 async def get_tasks_for_user(

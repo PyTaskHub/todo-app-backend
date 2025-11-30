@@ -76,8 +76,8 @@ async def update_existing_task(
     status_code=status.HTTP_200_OK
 )
 async def get_single_task(
+    task_id: int,
     current_user: CurrentUser,
-    task_id_in: int,
     db: AsyncSession = Depends(get_db)  
 ) -> TaskResponse:
     """
@@ -93,9 +93,8 @@ async def get_single_task(
     task = await get_task_by_id(
         db=db,
         user_id=current_user.id,
-        task_id=task_id_in,
+        task_id=task_id,
     )
-
     return task
 
 @router.get(
