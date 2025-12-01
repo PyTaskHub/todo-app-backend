@@ -8,7 +8,7 @@ from typing import Literal
 
 from app.api.deps import CurrentUser, get_db
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskListResponse
-from app.crud.task import create_task, update_task, get_task_by_id, get_tasks_for_user
+from app.crud.task import create_task, delete_the_task, update_task, get_task_by_id, get_tasks_for_user
 
 router = APIRouter()
 
@@ -79,7 +79,7 @@ async def update_existing_task(
 async def get_single_task(
     task_id: int,
     current_user: CurrentUser,
-    db: AsyncSession = Depends(get_db)  
+    db: AsyncSession = Depends(get_db)
 ) -> TaskResponse:
     """
     Get a single task.
@@ -136,4 +136,32 @@ async def get_tasks(
         total=total,
         limit=limit,
         offset=offset,
+    )
+
+@router.delete(
+    "/{task_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        401: {"description": "Not authenticated"},
+        404: {"description": "Task not found or doesn't belong to user"},
+    },
+)
+async def delete_task(
+    task_id: int,
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db)
+) -> None:
+    """
+    Delete task.
+
+    - Requires Authorization: Bearer <token>
+    - Task owner can delete it only
+    - Task is deleted completely
+
+    Returns 204 No Content if success.
+    """
+    await delete_the_task(
+        db=db,
+        task_id=task_id,
+        user_id=current_user.id
     )
