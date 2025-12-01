@@ -146,9 +146,10 @@ async def get_tasks_for_user(
     limit: int = 20,
     offset: int = 0,
     status_filter: str = "all",
+    category_filter: Optional[str] = None,
 ) -> tuple[list[Task], int]:
     """
-    Get list of tasks for the user with optional status filtering and pagination.
+    Get list of tasks for the user with optional status/category filtering and pagination.
     
     Args:
         limit: pagination limit
@@ -157,6 +158,10 @@ async def get_tasks_for_user(
             - "all"        — return all tasks
             - "pending"    — only incomplete tasks
             - "completed"  — only finished tasks
+        category_filter:
+            - None         — no category
+            - "null"       — only tasks without category
+            - integer id   — tasks with this category (must belong to user)
     
     Returns:
             items: list of Task objects
@@ -171,7 +176,26 @@ async def get_tasks_for_user(
         query = query.where(Task.status == Status.pending)
     elif status_filter == "completed":
         query = query.where(Task.status == Status.completed)
+
+    if category_filter == "null":
+        query = query.where(Task.category_id.is_(None))
+    elif category_filter is not None:
+        category_id = int(category_filter)
+
+        category = await get_category_if_owned(
+            db=db,
+            category_id=category_id,
+            user_id=user_id
+        )
+
+        if category is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Category not found or doesn't belong to the user"  
+            )
     
+        query = query.where(Task.category_id == category_id)
+
     query = (
         query.order_by(Task.created_at.desc())
         .limit(limit)
@@ -187,6 +211,12 @@ async def get_tasks_for_user(
         count_query = count_query.where(Task.status == Status.pending)
     elif status_filter == "completed":
         count_query = count_query.where(Task.status == Status.completed)
+
+    if category_filter == "null":
+        count_query = count_query.where(Task.category_id.is_(None))
+    elif category_filter is not None:
+        category_id = int(category_filter)
+        count_query = count_query.where(Task.category_id == category_id)
 
     total = (await db.execute(count_query)).scalar()
 
