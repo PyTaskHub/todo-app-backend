@@ -4,7 +4,7 @@ Task management endpoints.
 from fastapi import APIRouter, Depends, status, Query
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Literal
+from typing import Literal, Optional
 
 from app.api.deps import CurrentUser, get_db
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskListResponse
@@ -108,6 +108,7 @@ async def get_tasks(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     status_filter: Literal["all", "pending", "completed"] = Query("all"),
+    category_id: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
 ) -> TaskListResponse:
     """
@@ -121,6 +122,10 @@ async def get_tasks(
         - **all** (default) — return all tasks
         - **pending** — only incomplete tasks
         - **completed** — only completed tasks
+    - Supports filtering by **category_id**:
+        - **{id}** — tasks of this category (belongs to user)
+        - **null** — tasks without category
+        - **omitted** — all tasks
     """
     
     items, total = await get_tasks_for_user(
@@ -128,7 +133,8 @@ async def get_tasks(
         user_id=current_user.id,
         limit=limit,
         offset=offset,
-        status_filter=status_filter
+        status_filter=status_filter,
+        category_filter=category_id
     )
 
     return TaskListResponse(
