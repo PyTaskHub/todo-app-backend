@@ -140,6 +140,39 @@ async def update_task(
 
     return task
 
+async def get_task_by_id(
+        db: AsyncSession,
+        user_id: int,
+        task_id: int
+) -> Task:
+    """
+    Get single task by id.
+
+    Args:
+        db: database session
+        user_id: id from authenticated user which create task
+        task_id: task id from request
+    Returns:
+        Task object
+    """
+    task_by_id = await get_task_if_owned(db, task_id, user_id)
+
+    # Check if task is exists
+    if task_by_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found"
+        )
+
+    # If task contains category
+    if task_by_id.category_id is not None:
+        category = await get_category_if_owned(db, task_by_id.category_id, user_id)
+        if category:
+          task_by_id.category_name = category.name
+          task_by_id.category_description = category.description
+
+    return task_by_id
+
 async def get_tasks_for_user(
     db: AsyncSession,
     user_id: int,
