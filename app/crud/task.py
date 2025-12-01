@@ -180,8 +180,14 @@ async def get_tasks_for_user(
     if category_filter == "null":
         query = query.where(Task.category_id.is_(None))
     elif category_filter is not None:
-        category_id = int(category_filter)
-
+        try:
+            category_id = int(category_filter)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Invalid category_id format"
+            )
+        
         category = await get_category_if_owned(
             db=db,
             category_id=category_id,
