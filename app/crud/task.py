@@ -191,3 +191,33 @@ async def get_tasks_for_user(
     total = (await db.execute(count_query)).scalar()
 
     return items, total
+
+async def delete_the_task(
+        db: AsyncSession,
+        task_id: int,
+        user_id: int
+) -> None:
+    """
+    Delete task.
+
+    Args:
+        db: database session
+        task_id: task id from request
+        user_id: id from authenticated user which create task
+    """
+    # Get task by id and user id
+    task_data = select(Task).where(
+        Task.id == task_id,
+        Task.user_id == user_id,
+    )
+    result = await db.execute(task_data)
+    task = result.scalar_one_or_none()
+
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found or doesn't belong to current user",
+        )
+    # Delete task
+    await db.delete(task)
+    await db.commit()
