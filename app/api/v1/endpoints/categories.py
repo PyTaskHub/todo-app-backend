@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter, Depends, status
 from app.api.deps import CurrentUser
-from app.crud.category import create_category, update_category, get_user_categories_with_tasks_count
+from app.crud.category import create_category, update_category, get_user_categories_with_tasks_count, delete_category
 from app.schemas.category import CategoryCreate, CategoryResponse, CategoryUpdate, CategoryListItem
 from app.db.session import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,7 +29,7 @@ async def create_new_category(
     )
 
     return category
-  
+
 @router.put(
     "/{category_id}",
         response_model=CategoryResponse,
@@ -53,6 +53,7 @@ async def update_the_category(
     )
 
     return edited_category
+
 
 @router.get(
   "/",
@@ -87,3 +88,31 @@ async def get_user_categories(
         )
         for category, tasks_count in rows
     ]
+
+@router.delete(
+    "/{category_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        401: {"description": "Not authenticated"},
+        404: {"description": "Category not found or does not belong to the user"},
+    },
+)
+async def delete_existing_category(
+    category_id: int,
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """
+    Delete category belonging to the authenticated user.
+
+    - Requires Authorization: Bearer <token>
+    - Only the category owner can delete it
+    - All tasks with this category become uncategorized (category_id = null)
+
+    Returns 204 No Content on success.
+    """
+    await delete_category(
+        db=db,
+        category_id=category_id,
+        user_id=current_user.id,
+    )
