@@ -307,3 +307,42 @@ async def delete_the_task(
     # Delete task
     await db.delete(task)
     await db.commit()
+
+async def get_task_statistics_for_user(
+    db: AsyncSession,
+    user_id: int,
+) -> dict:
+    """
+    Get aggregated statistics for tasks of the given user.
+
+    Returns:
+        - total: total number of tasks
+        - completed: number of completed tasks
+        - pending: number of pending tasks
+        - completion_rate: completion percentage (0–100, rounded to 2 decimals)
+    """
+    # Total number of tasks for the user
+    total = await db.scalar(
+        select(func.count(Task.id)).where(Task.user_id == user_id)
+    )
+
+    # Number of completed tasks
+    completed = await db.scalar(
+        select(func.count(Task.id)).where(
+            Task.user_id == user_id,
+            Task.status == Status.completed,
+        )
+    )
+
+    total = int(total or 0)
+    completed = int(completed or 0)
+
+    pending = total - completed
+    completion_rate = (completed / total * 100) if total > 0 else 0.0
+
+    return {
+        "total": total,
+        "completed": completed,
+        "pending": pending,
+        "completion_rate": round(completion_rate, 2),
+    }

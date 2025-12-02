@@ -145,3 +145,28 @@ class TaskListResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class TaskStatsResponse(BaseModel):
+    """
+    Statistics for current user's tasks.
+    """
+    total: int = Field(
+        ...,
+        description="Total number of tasks for the user",
+        examples=[25],
+    )
+    completed: int = Field(
+        ...,
+        description="Number of completed tasks",
+        examples=[15],
+    )
+    pending: int = Field(
+        ...,
+        description="Number of pending (incomplete) tasks",
+        examples=[10],
+    )
+    completion_rate: float = Field(
+        ...,
+        description="Completion percentage (0-100)",
+        examples=[60.25],
+    )
