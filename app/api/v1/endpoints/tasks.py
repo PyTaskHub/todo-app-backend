@@ -4,10 +4,11 @@ Task management endpoints.
 from fastapi import APIRouter, Depends, status, Query
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Literal, Optional
+from typing import Optional
 
 from app.api.deps import CurrentUser, get_db
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskListResponse
+from app.schemas.task_filters import TaskSortBy, SortOrder, StatusFilter 
 from app.crud.task import create_task, delete_the_task, update_task, get_task_by_id, get_tasks_for_user
 
 router = APIRouter()
@@ -107,8 +108,10 @@ async def get_tasks(
     current_user: CurrentUser,
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
-    status_filter: Literal["all", "pending", "completed"] = Query("all"),
+    status_filter: StatusFilter = StatusFilter.all,
     category_id: Optional[str] = None,
+    sort_by: TaskSortBy = TaskSortBy.created_at,
+    order: SortOrder = SortOrder.desc,
     db: AsyncSession = Depends(get_db),
 ) -> TaskListResponse:
     """
@@ -126,6 +129,9 @@ async def get_tasks(
         - **{id}** — tasks of this category (belongs to user)
         - **null** — tasks without category
         - **omitted** — all tasks
+    - Supports sorting by **created_at**, **priority**, **due_date**, **status**
+        - asc — tasks are sorted in ascending order
+        - desc — tasks are sorted in descending order
     """
     
     items, total = await get_tasks_for_user(
@@ -134,7 +140,9 @@ async def get_tasks(
         limit=limit,
         offset=offset,
         status_filter=status_filter,
-        category_filter=category_id
+        category_filter=category_id,
+        sort_by=sort_by,
+        order=order,
     )
 
     return TaskListResponse(

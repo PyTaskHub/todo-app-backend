@@ -3,13 +3,14 @@ CRUD operations for Task model.
 """
 from typing import Optional
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, asc, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
 from app.models.task import Task, Priority, Status
 from app.models.category import Category
 from app.schemas.task import TaskCreate, TaskUpdate
+from app.schemas.task_filters import TaskSortBy, SortOrder, StatusFilter
 
 async def get_category_if_owned(
         db: AsyncSession,
@@ -178,11 +179,13 @@ async def get_tasks_for_user(
     user_id: int,
     limit: int = 20,
     offset: int = 0,
-    status_filter: str = "all",
+    status_filter: StatusFilter = StatusFilter.all,
     category_filter: Optional[str] = None,
+    sort_by: TaskSortBy = TaskSortBy.created_at,
+    order: SortOrder = SortOrder.desc,
 ) -> tuple[list[Task], int]:
     """
-    Get list of tasks for the user with optional status/category filtering and pagination.
+    Get list of tasks for the user with optional status/category filtering, sorting and pagination.
     
     Args:
         limit: pagination limit
@@ -195,6 +198,8 @@ async def get_tasks_for_user(
             - None         — no category
             - "null"       — only tasks without category
             - integer id   — tasks with this category (must belong to user)
+        sort_by: field to sort by ('created_at', 'priority', 'due_date', 'status')
+        order: asc/desc order
     
     Returns:
             items: list of Task objects
@@ -210,11 +215,14 @@ async def get_tasks_for_user(
     elif status_filter == "completed":
         query = query.where(Task.status == Status.completed)
 
+
+    parsed_category_id: Optional[int] = None
+
     if category_filter == "null":
         query = query.where(Task.category_id.is_(None))
     elif category_filter is not None:
         try:
-            category_id = int(category_filter)
+            parsed_category_id = int(category_filter)
         except ValueError:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -223,7 +231,7 @@ async def get_tasks_for_user(
         
         category = await get_category_if_owned(
             db=db,
-            category_id=category_id,
+            category_id=parsed_category_id,
             user_id=user_id
         )
 
@@ -233,10 +241,20 @@ async def get_tasks_for_user(
                 detail="Category not found or doesn't belong to the user"  
             )
     
-        query = query.where(Task.category_id == category_id)
+        query = query.where(Task.category_id == parsed_category_id)
+
+    sort_fields = {
+        TaskSortBy.created_at: Task.created_at,
+        TaskSortBy.due_date: Task.due_date,
+        TaskSortBy.priority: Task.priority,
+        TaskSortBy.status: Task.status
+    }
+
+    sort_column = sort_fields[sort_by]
+    order_func = desc if order == SortOrder.desc else asc
 
     query = (
-        query.order_by(Task.created_at.desc())
+        query.order_by(order_func(sort_column))
         .limit(limit)
         .offset(offset)
     )
@@ -253,9 +271,8 @@ async def get_tasks_for_user(
 
     if category_filter == "null":
         count_query = count_query.where(Task.category_id.is_(None))
-    elif category_filter is not None:
-        category_id = int(category_filter)
-        count_query = count_query.where(Task.category_id == category_id)
+    elif parsed_category_id is not None:
+        count_query = count_query.where(Task.category_id == parsed_category_id)
 
     total = (await db.execute(count_query)).scalar()
 
