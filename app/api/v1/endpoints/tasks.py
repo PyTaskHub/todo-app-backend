@@ -109,6 +109,7 @@ async def get_tasks(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     status_filter: StatusFilter = StatusFilter.all,
+    search: Optional[str] = Query(None, description="Search term for case-insensitive searching (optional)"),
     category_id: Optional[str] = None,
     sort_by: TaskSortBy = TaskSortBy.created_at,
     order: SortOrder = SortOrder.desc,
@@ -125,6 +126,9 @@ async def get_tasks(
         - **all** (default) — return all tasks
         - **pending** — only incomplete tasks
         - **completed** — only completed tasks
+    - Supports case-insensitive searching by **title**:
+        - **{search_term}** — search in task titles
+        - **null** — all tasks
     - Supports filtering by **category_id**:
         - **{id}** — tasks of this category (belongs to user)
         - **null** — tasks without category
@@ -140,6 +144,7 @@ async def get_tasks(
         limit=limit,
         offset=offset,
         status_filter=status_filter,
+        search=search,
         category_filter=category_id,
         sort_by=sort_by,
         order=order,
