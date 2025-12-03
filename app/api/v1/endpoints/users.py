@@ -10,7 +10,7 @@ from app.models.user import User
 from app.crud import user as user_crud
 from sqlalchemy.ext.asyncio import AsyncSession
 
-router = APIRouter(prefix="/api/v1")
+router = APIRouter()
 
 
 @router.get("/me", response_model=UserResponse)
@@ -28,7 +28,7 @@ async def get_current_user_profile(
 @router.put("/me", response_model=UserResponse)
 async def put_update_user_profile(
         profile_update: UserProfileUpdate,
-        current_user: User = Depends(CurrentUser),
+        current_user: CurrentUser,
         db: AsyncSession = Depends(get_db)
 ) -> UserResponse:
     """
@@ -38,21 +38,11 @@ async def put_update_user_profile(
     Checks for email uniqueness if email is changed.
     Returns the updated user profile.
     """
-    try:
-        updated_user = await user_crud.update_user_profile(
-            db=db,
-            user=current_user,
-            profile_update=profile_update
-        )
-        return updated_user
-    except HTTPException as e:
-
-        raise e
-    except Exception as e:
-
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An unexpected error occurred: {str(e)}"
-        )
+    updated_user = await user_crud.update_user_profile(
+        db=db,
+        user=current_user,
+        profile_update=profile_update
+    )
+    return updated_user
 
 # TODO: Task - Implement change password endpoint
