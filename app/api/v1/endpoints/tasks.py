@@ -7,9 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
 from app.api.deps import CurrentUser, get_db
-from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskListResponse
+from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskListResponse, TaskStatsResponse
 from app.schemas.task_filters import TaskSortBy, SortOrder, StatusFilter 
-from app.crud.task import create_task, delete_the_task, update_task, get_task_by_id, get_tasks_for_user
+from app.crud.task import create_task, delete_the_task, update_task, get_task_by_id, get_tasks_for_user, get_task_statistics_for_user
 
 router = APIRouter()
 
@@ -71,6 +71,35 @@ async def update_existing_task(
     )
 
     return updated_task
+
+@router.get(
+    "/stats",
+    response_model=TaskStatsResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        401: {"description": "Not authenticated"},
+    },
+)
+async def get_task_statistics(
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get statistics for the current user's tasks.
+
+    - Requires Authorization: Bearer <token>
+    - Counts tasks with status = "completed" and "pending"
+    - Returns:
+        - total - total number of tasks
+        - completed - number of completed tasks
+        - pending - number of pending tasks
+        - completion_rate - completion percentage (0–100, rounded to 2 decimals)
+    """
+    stats = await get_task_statistics_for_user(
+        db=db,
+        user_id=current_user.id,
+    )
+    return stats
 
 @router.get(
     "/{task_id}",
