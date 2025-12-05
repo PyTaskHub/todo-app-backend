@@ -1,12 +1,13 @@
 """
 CRUD operations for User model.
 """
+from fastapi import HTTPException, status
 from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate
+from app.schemas.user import UserCreate, UserUpdate, UserProfileUpdate
 
 
 async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[User]:
@@ -115,3 +116,42 @@ async def update_user(
     await db.refresh(db_user)
 
     return db_user
+
+
+async def update_user_profile(
+    db: AsyncSession, 
+    user: User,
+    profile_update: UserProfileUpdate
+) -> User:
+    """
+    Updates the profile of a user, checking for email uniqueness.
+    """
+    update_data = profile_update.model_dump(exclude_unset=True)
+
+    if not update_data:
+        return user
+
+    if "email" in update_data:
+        new_email = update_data["email"]
+
+        if new_email != user.email:
+            existing_user_with_new_email_orm = await db.scalar(
+                 select(User).where(
+                    User.email == new_email, 
+                    User.id != user.id)
+            )
+
+
+            if existing_user_with_new_email_orm:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,  # 409
+                    detail="Email already registered"
+                )
+
+    for field, value in update_data.items():
+        setattr(user, field, value)
+
+    await db.commit()
+    await db.refresh(user)
+
+    return user
