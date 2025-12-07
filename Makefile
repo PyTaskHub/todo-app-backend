@@ -80,6 +80,9 @@ db-restart:  ## Restart PostgreSQL
 	$(MAKE) db-down
 	$(MAKE) db-up
 
+db-add-testdata:
+	python scripts/seed_data.py
+
 # ============================================================================
 # Docker Compose Commands
 # ============================================================================
