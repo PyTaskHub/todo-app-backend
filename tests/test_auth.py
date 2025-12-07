@@ -51,7 +51,7 @@ def test_register_duplicate_email(client):
 
 
 def test_register_validation_error(client):
-    # Missing username and too short password → should fail validation with 422
+    # Missing username and too short password - should fail validation with 422
     response = client.post(
         "/api/v1/auth/register",
         json={"email": "wrong", "password": "123"},
@@ -60,7 +60,7 @@ def test_register_validation_error(client):
 
 
 def test_register_empty_fields(client):
-    # Empty strings for all fields → validation error
+    # Empty strings for all fields - validation error
     response = client.post(
         "/api/v1/auth/register",
         json={"username": "", "email": "", "password": ""},
@@ -69,7 +69,7 @@ def test_register_empty_fields(client):
 
 
 def test_register_missing_fields(client):
-    # No fields provided → validation error
+    # No fields provided - validation error
     response = client.post("/api/v1/auth/register", json={})
     assert response.status_code == 422
 
@@ -116,7 +116,7 @@ def test_login_long_email(client):
         json={"email": long_email, "password": "password123"},
     )
 
-    # Invalid email format → 422
+    # Invalid email format 422
     assert response.status_code == 422
 
 
@@ -190,7 +190,7 @@ def test_protected_route_with_invalid_token(client):
 @pytest.mark.asyncio
 async def test_register_email_conflict_direct(monkeypatch):
     async def fake_get_user_by_email(db, email):
-        # Return truthy value → email is already taken
+        # Return truthy value - email is already taken
         return object()
 
     async def fake_get_user_by_username(db, username):

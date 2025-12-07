@@ -180,6 +180,7 @@ async def get_tasks_for_user(
     limit: int = 20,
     offset: int = 0,
     status_filter: StatusFilter = StatusFilter.all,
+    search: Optional[str] = None,
     category_filter: Optional[str] = None,
     sort_by: TaskSortBy = TaskSortBy.created_at,
     order: SortOrder = SortOrder.desc,
@@ -194,6 +195,7 @@ async def get_tasks_for_user(
             - "all"        — return all tasks
             - "pending"    — only incomplete tasks
             - "completed"  — only finished tasks
+        search: search term for task title (case-insensitive, optional)
         category_filter:
             - None         — no category
             - "null"       — only tasks without category
@@ -243,6 +245,10 @@ async def get_tasks_for_user(
     
         query = query.where(Task.category_id == parsed_category_id)
 
+    if search and search.strip():
+        search_term = search.strip()
+        query = query.where(Task.title.ilike(f"%{search_term}%"))
+
     sort_fields = {
         TaskSortBy.created_at: Task.created_at,
         TaskSortBy.due_date: Task.due_date,
@@ -273,6 +279,10 @@ async def get_tasks_for_user(
         count_query = count_query.where(Task.category_id.is_(None))
     elif parsed_category_id is not None:
         count_query = count_query.where(Task.category_id == parsed_category_id)
+
+    if search and search.strip():
+        search_term = search.strip()
+        count_query = count_query.where(Task.title.ilike(f"%{search_term}%"))
 
     total = (await db.execute(count_query)).scalar()
 

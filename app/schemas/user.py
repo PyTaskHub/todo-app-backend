@@ -22,6 +22,20 @@ class UserBase(BaseModel):
         description="Valid email address",
         examples=["john@example.com"]
     )
+    first_name: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=50,
+        description="User's first name",
+        examples=["John"]
+    )
+    last_name: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=50,
+        description="User's last name",
+        examples=["Doe"]
+    )
 
 
 class UserCreate(UserBase):
@@ -107,4 +121,26 @@ class UserLogin(BaseModel):
         ...,
         description="User password",
         examples=["MySecurePass123!"]
+    )
+
+
+class UserProfileUpdate(BaseModel):
+    """
+    Schema for updating user profile information.
+    Allows updating email, first_name, and last_name.
+    All fields are optional.
+    """
+    email: Optional[EmailStr] = Field(
+        None,
+        description="New email address (must be unique)"
+    )
+    first_name: Optional[str] = Field(
+        None, 
+        min_length=1, 
+        max_length=50
+    )
+    last_name: Optional[str] = Field(
+        None, 
+        min_length=1, 
+        max_length=50
     )

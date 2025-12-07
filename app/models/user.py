@@ -36,6 +36,14 @@ class User(Base):
         nullable=False,
         comment="Hashed password (bcrypt)"
     )
+    first_name = Column(
+        String(50), 
+        nullable=True
+    )
+    last_name = Column(
+        String(50), 
+        nullable=True
+    )
 
     # User status
     is_active = Column(
