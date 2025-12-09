@@ -247,19 +247,6 @@ async def complete_task(
         user_id=current_user.id
     )
 
-    if task.category_id is not None:
-        from app.crud.category import get_category_by_id
-        category = await get_category_by_id(
-            db=db,
-            current_user_id=current_user.id,
-            category_id=task.category_id
-        )
-        if category:
-            task.category_name = category.name
-            task.category_description = category.description
-    
-    return task
-
 
 @router.patch(
     "/{task_id}/uncomplete",
@@ -292,16 +279,3 @@ async def uncomplete_task(
         task_id=task_id,
         user_id=current_user.id
     )
-    
-    if task.category_id is not None:
-        from app.crud.category import get_category_by_id
-        category = await get_category_by_id(
-            db=db,
-            current_user_id=current_user.id,
-            category_id=task.category_id
-        )
-        if category:
-            task.category_name = category.name
-            task.category_description = category.description
-    
-    return task

@@ -166,15 +166,6 @@ async def get_task_by_id(
             detail="Task not found"
         )
 
-    # If task contains category
-    if task_by_id.category_id is not None:
-        category = await get_category_if_owned(db, task_by_id.category_id, user_id)
-        if category:
-          task_by_id.category_name = category.name
-          task_by_id.category_description = category.description
-
-    return task_by_id
-
 async def get_tasks_for_user(
     db: AsyncSession,
     user_id: int,
