@@ -30,15 +30,9 @@ router = APIRouter()
                 }
             },
         },
-        401: {
-            "description": "Not authenticated",
-        },
-        409: {
-            "description": "Category with this name already exists",
-        },
-        422: {
-            "description": "Validation error. The request body does not match the expected schema",
-        },
+        401: {"description": "Not authenticated"},
+        409: {"description": "Category with this name already exists"},
+        422: {"description": "Validation error. The request body does not match the expected schema"},
     },
 )
 async def create_new_category(
@@ -84,18 +78,10 @@ async def create_new_category(
                 }
             },
         },
-        401: {
-            "description": "Not authenticated.",
-        },
-        404: {
-            "description": "Category not found or does not belong to the user",
-        },
-        409: {
-            "description": "Category with this name already exists"
-        },
-        422: {
-            "description": "Validation error. The request body does not match the expected schema",
-        },
+        401: {"description": "Not authenticated."},
+        404: {"description": "Category not found or does not belong to the user"},
+        409: {"description": "Category with this name already exists"},
+        422: {"description": "Validation error. The request body does not match the expected schema"},
     },
 )
 async def update_the_category(
@@ -153,9 +139,7 @@ async def update_the_category(
                 }
             },
         },
-        401: {
-            "description": "Not authenticated",
-        },
+        401: {"description": "Not authenticated"},
     },
 )
 async def get_user_categories(
@@ -192,18 +176,10 @@ async def get_user_categories(
     summary="Delete category",
     description="Delete a category belonging to the authenticated user",
     responses={
-        204: {
-            "description": "Category successfully deleted",
-        },
-        401: {
-            "description": "Not authenticated",
-        },
-        404: {
-            "description": "Category not found or does not belong to the user",
-        },
-        422: {
-            "description": "Validation error. The request does not match the expected schema",
-        },
+        204: {"description": "Category successfully deleted"},
+        401: {"description": "Not authenticated"},
+        404: {"description": "Category not found or does not belong to the user"},
+        422: {"description": "Validation error. The request does not match the expected schema"},
     },
 )
 async def delete_existing_category(
