@@ -59,12 +59,16 @@ async def main():
         
         db.add_all(users)
         await db.flush()
-        
+
         # Creating categories
         categories = []
+        user_categories = {}
         for user in users:
+            user_categories[user.id] = []
             for name in ["Work", "Personal", "Home"]:
-                categories.append(Category(name=name, user_id=user.id))
+                category = Category(name=name, user_id=user.id)
+                categories.append(category)
+                user_categories[user.id].append(category)
         
         db.add_all(categories)
         await db.flush()
@@ -72,14 +76,24 @@ async def main():
         # Create tasks
         tasks = []
         for user in users:
-            for i in range(30):  # 30 tasks per user
+            user_cats = user_categories[user.id]
+            for i in range(30): # 30 tasks per user
+                
+                task_status = random.choice([Status.pending, Status.completed])
+                task_completed = datetime.now() - timedelta(days=random.randint(1, 7)) if task_status == Status.completed else None
+                task_priority = random.choice([Priority.high, Priority.low, Priority.medium])
+                task_category_id = random.choice(user_cats).id if random.random() > 0.5 else None
+                task_due_date = datetime.now() + timedelta(days=random.randint(-7, 30)) if random.random() > 0.3 else None
+
                 tasks.append(Task(
                     title=f"Task {i+1}",
                     description="Some description",
-                    status=random.choice([Status.pending, Status.completed]),
-                    priority=random.choice([Priority.high, Priority.low, Priority.medium]),
+                    status=task_status,
+                    completed_at=task_completed,
+                    priority=task_priority,
                     user_id=user.id,
-                    category_id=random.choice(categories).id if random.choice([True, False]) else None
+                    category_id=task_category_id,
+                    due_date=task_due_date
                 ))
         
         db.add_all(tasks)
@@ -91,3 +105,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
