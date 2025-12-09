@@ -155,3 +155,39 @@ async def update_user_profile(
     await db.refresh(user)
 
     return user
+
+
+async def change_user_password(
+    db: AsyncSession,
+    user: User,
+    current_password: str,
+    new_password: str
+) -> User:
+    """
+    Change user password with current password verification.
+    
+    Args:
+        db: Database session
+        user: User object to update
+        current_password: Current password for verification
+        new_password: New password to set
+    
+    Returns:
+        Updated User object
+    
+    Raises:
+        HTTPException: 401 if current password is incorrect
+    """
+    if not user.verify_password(current_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect current password"
+        )
+    
+    user.set_password(new_password)
+    
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    
+    return user

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import CurrentUser
 from app.db.session import get_db
-from app.schemas.user import UserResponse, UserProfileUpdate
+from app.schemas.user import UserResponse, UserProfileUpdate, ChangePassword
 from app.models.user import User
 from app.crud import user as user_crud
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -46,3 +46,36 @@ async def put_update_user_profile(
     return updated_user
 
 # TODO: Task - Implement change password endpoint
+@router.post(
+    "/me/change-password",
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "Password changed successfully"},
+        400: {"description": "Invalid input data"},
+        401: {"description": "Incorrect current password"},
+        422: {"description": "Validation error"},
+    }
+)
+async def change_password(
+    password_data: ChangePassword,
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Change password for authenticated user.
+    
+    Requires authentication. 
+    - Verifies current password
+    - Validates new password (min 8 characters)
+    - Hashes and stores new password
+    
+    Returns success message.
+    """
+    await user_crud.change_user_password(
+        db=db,
+        user=current_user,
+        current_password=password_data.current_password,
+        new_password=password_data.new_password
+    )
+    
+    return {"message": "Password changed successfully"}
