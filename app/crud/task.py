@@ -6,6 +6,7 @@ from typing import Optional
 from sqlalchemy import select, func, asc, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
+from datetime import datetime, timezone
 
 from app.models.task import Task, Priority, Status
 from app.models.category import Category
@@ -164,14 +165,6 @@ async def get_task_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found"
         )
-
-    # If task contains category
-    if task_by_id.category_id is not None:
-        category = await get_category_if_owned(db, task_by_id.category_id, user_id)
-        if category:
-          task_by_id.category_name = category.name
-          task_by_id.category_description = category.description
-
     return task_by_id
 
 async def get_tasks_for_user(
@@ -356,3 +349,83 @@ async def get_task_statistics_for_user(
         "pending": pending,
         "completion_rate": round(completion_rate, 2),
     }
+
+
+async def mark_task_as_completed(
+    db: AsyncSession,
+    task_id: int,
+    user_id: int,
+) -> Task:
+    """
+    Mark task as completed.
+    
+    Args:
+        db: database session
+        task_id: task identifier
+        user_id: current user id
+    
+    Returns:
+        Updated Task object
+    
+    Raises:
+        HTTPException: 404 if task not found or not owned by user
+    """
+    task = await get_task_if_owned(db, task_id, user_id)
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found or doesn't belong to the user"
+        )
+
+    if task.status == Status.completed:
+        return task
+
+    task.status = Status.completed
+    task.completed_at = datetime.now(timezone.utc)
+    task.updated_at = datetime.now(timezone.utc)
+    
+    db.add(task)
+    await db.commit()
+    await db.refresh(task)
+    
+    return task
+
+
+async def mark_task_as_pending(
+    db: AsyncSession,
+    task_id: int,
+    user_id: int,
+) -> Task:
+    """
+    Mark task as pending/incomplete.
+    
+    Args:
+        db: database session
+        task_id: task identifier
+        user_id: current user id
+    
+    Returns:
+        Updated Task object
+    
+    Raises:
+        HTTPException: 404 if task not found or not owned by user
+    """
+    task = await get_task_if_owned(db, task_id, user_id)
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found or doesn't belong to the user"
+        )
+
+    if task.status == Status.pending:
+        return task
+
+    task.status = Status.pending
+    task.completed_at = None
+    task.updated_at = datetime.now(timezone.utc)
+    
+    db.add(task)
+    await db.commit()
+    await db.refresh(task)
+    
+    return task
