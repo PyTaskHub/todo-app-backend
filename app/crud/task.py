@@ -165,6 +165,7 @@ async def get_task_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found"
         )
+    return task_by_id
 
 async def get_tasks_for_user(
     db: AsyncSession,

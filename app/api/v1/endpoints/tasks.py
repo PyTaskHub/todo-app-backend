@@ -246,6 +246,7 @@ async def complete_task(
         task_id=task_id,
         user_id=current_user.id
     )
+    return task
 
 
 @router.patch(
@@ -279,3 +280,4 @@ async def uncomplete_task(
         task_id=task_id,
         user_id=current_user.id
     )
+    return task
