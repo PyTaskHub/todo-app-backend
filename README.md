@@ -289,6 +289,12 @@ pytest tests/test_auth.py -v
 
 # Через Makefile
 make test
+
+# Добавление тестовых данных в базу данных
+python scripts/seed_data.py
+
+# Через Makefile
+make db-add-testdata
 ```
 
 Отчёт о покрытии кода будет доступен в `htmlcov/index.html`
