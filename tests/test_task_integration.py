@@ -248,6 +248,105 @@ def test_cannot_update_task_with_foreign_category(
 
     assert response.status_code == 400
 
+def test_complete_task_success(client, auth_headers, created_task):
+    response = client.patch(
+        f"{BASE_URL}/{created_task['id']}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["status"] == "completed"
+    assert data["completed_at"] is not None
+
+def test_complete_task_idempotent(client, auth_headers, created_task):
+    client.patch(
+        f"{BASE_URL}/{created_task['id']}/complete",
+        headers=auth_headers,
+    )
+
+    response = client.patch(
+        f"{BASE_URL}/{created_task['id']}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "completed"
+
+def test_complete_task_unauthorized(client, created_task):
+    response = client.patch(
+        f"{BASE_URL}/{created_task['id']}/complete",
+    )
+
+    assert response.status_code == 401
+
+def test_complete_task_not_owned(client, created_task, second_auth_headers):
+    response = client.patch(
+        f"{BASE_URL}/{created_task['id']}/complete",
+        headers=second_auth_headers,
+    )
+
+    assert response.status_code == 404
+
+def test_complete_task_not_found(client, auth_headers):
+    response = client.patch(
+        f"{BASE_URL}/999999/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 404
+
+def test_uncomplete_task_success(client, auth_headers, created_task):
+    client.patch(
+        f"{BASE_URL}/{created_task['id']}/complete",
+        headers=auth_headers,
+    )
+
+    response = client.patch(
+        f"{BASE_URL}/{created_task['id']}/uncomplete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["status"] == "pending"
+    assert data["completed_at"] is None
+
+def test_uncomplete_task_idempotent(client, auth_headers, created_task):
+    response = client.patch(
+        f"{BASE_URL}/{created_task['id']}/uncomplete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "pending"
+
+def test_uncomplete_task_unauthorized(client, created_task):
+    response = client.patch(
+        f"{BASE_URL}/{created_task['id']}/uncomplete",
+    )
+
+    assert response.status_code == 401
+
+def test_uncomplete_task_not_owned(client, created_task, second_auth_headers):
+    response = client.patch(
+        f"{BASE_URL}/{created_task['id']}/uncomplete",
+        headers=second_auth_headers,
+    )
+
+    assert response.status_code == 404
+
+def test_uncomplete_task_not_found(client, auth_headers):
+    response = client.patch(
+        f"{BASE_URL}/999999/uncomplete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 404
+
+
 # ================== DELETE /tasks/{id} ==================
 
 def test_delete_task_success(client, auth_headers, created_task):

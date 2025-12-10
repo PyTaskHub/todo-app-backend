@@ -9,7 +9,9 @@ from app.crud.task import (
     update_task,
     delete_the_task,
     get_tasks_for_user,
-    get_task_statistics_for_user
+    get_task_statistics_for_user,
+    mark_task_as_completed,
+    mark_task_as_pending
 )
 
 from app.schemas.task import TaskCreate, TaskUpdate
@@ -203,6 +205,65 @@ async def test_get_tasks_sort_by_status_asc(db, test_user):
 
     assert total == 1
 
+@pytest.mark.asyncio
+async def test_get_tasks_status_filter_pending(db, test_user):
+    await create_task(db, TaskCreate(title="Pending task"), test_user.id)
+
+    items, total = await get_tasks_for_user(
+        db,
+        user_id=test_user.id,
+        status_filter=StatusFilter.pending,
+    )
+
+    assert total == 1
+    assert items[0].status == Status.pending
+
+@pytest.mark.asyncio
+async def test_get_tasks_status_filter_completed(db, test_user):
+    task = await create_task(db, TaskCreate(title="Completed task"), test_user.id)
+    task.status = Status.completed
+    await db.commit()
+
+    items, total = await get_tasks_for_user(
+        db,
+        user_id=test_user.id,
+        status_filter=StatusFilter.completed,
+    )
+
+    assert total == 1
+    assert items[0].status == Status.completed
+
+
+@pytest.mark.asyncio
+async def test_get_tasks_status_filter_all(db, test_user):
+    await create_task(db, TaskCreate(title="Task 1"), test_user.id)
+    await create_task(db, TaskCreate(title="Task 2"), test_user.id)
+
+    items, total = await get_tasks_for_user(
+        db,
+        user_id=test_user.id,
+        status_filter=StatusFilter.all,
+    )
+
+    assert total == 2
+    
+@pytest.mark.asyncio
+async def test_get_tasks_completed_total_count(db, test_user):
+    t1 = await create_task(db, TaskCreate(title="Done 1"), test_user.id)
+    t2 = await create_task(db, TaskCreate(title="Done 2"), test_user.id)
+
+    t1.status = Status.completed
+    t2.status = Status.completed
+    await db.commit()
+
+    items, total = await get_tasks_for_user(
+        db,
+        user_id=test_user.id,
+        status_filter=StatusFilter.completed,
+    )
+
+    assert total == 2
+
 # ================== UPDATE TESTS ==================
 
 @pytest.mark.asyncio
@@ -282,75 +343,106 @@ async def test_update_task_remove_category(db, test_user, test_task):
     assert updated.category_id is None
 
 @pytest.mark.asyncio
-async def test_update_task_remove_category(db, test_user, test_task):
-    updated = await update_task(
-        db,
+async def test_mark_task_as_completed_success(db, test_user, test_task):
+    task = await mark_task_as_completed(
+        db=db,
         task_id=test_task.id,
-        task_in=TaskUpdate(category_id=None),
         user_id=test_user.id,
     )
 
-    assert updated.category_id is None
+    assert task.status == Status.completed
+    assert task.completed_at is not None
+
     
 @pytest.mark.asyncio
-async def test_get_tasks_status_filter_pending(db, test_user):
-    await create_task(db, TaskCreate(title="Pending task"), test_user.id)
+async def test_mark_task_as_completed_idempotent(db, test_user, test_task):
+    await mark_task_as_completed(db, test_task.id, test_user.id)
 
-    items, total = await get_tasks_for_user(
-        db,
+    task = await mark_task_as_completed(
+        db=db,
+        task_id=test_task.id,
         user_id=test_user.id,
-        status_filter=StatusFilter.pending,
     )
 
-    assert total == 1
-    assert items[0].status == Status.pending
+    assert task.status == Status.completed
 
 @pytest.mark.asyncio
-async def test_get_tasks_status_filter_completed(db, test_user):
-    task = await create_task(db, TaskCreate(title="Completed task"), test_user.id)
-    task.status = Status.completed
-    await db.commit()
+async def test_mark_task_as_completed_not_owned_raises(
+    db,
+    test_task,
+    second_user,
+):
+    with pytest.raises(HTTPException) as exc:
+        await mark_task_as_completed(
+            db=db,
+            task_id=test_task.id,
+            user_id=second_user.id,
+        )
 
-    items, total = await get_tasks_for_user(
-        db,
-        user_id=test_user.id,
-        status_filter=StatusFilter.completed,
-    )
-
-    assert total == 1
-    assert items[0].status == Status.completed
-
+    assert exc.value.status_code == 404
 
 @pytest.mark.asyncio
-async def test_get_tasks_status_filter_all(db, test_user):
-    await create_task(db, TaskCreate(title="Task 1"), test_user.id)
-    await create_task(db, TaskCreate(title="Task 2"), test_user.id)
+async def test_mark_task_as_completed_not_found_raises(db, test_user):
+    with pytest.raises(HTTPException) as exc:
+        await mark_task_as_completed(
+            db=db,
+            task_id=999999,
+            user_id=test_user.id,
+        )
 
-    items, total = await get_tasks_for_user(
-        db,
-        user_id=test_user.id,
-        status_filter=StatusFilter.all,
-    )
+    assert exc.value.status_code == 404
 
-    assert total == 2
-    
 @pytest.mark.asyncio
-async def test_get_tasks_completed_total_count(db, test_user):
-    t1 = await create_task(db, TaskCreate(title="Done 1"), test_user.id)
-    t2 = await create_task(db, TaskCreate(title="Done 2"), test_user.id)
+async def test_mark_task_as_pending_success(db, test_user, test_task):
+    # make completed first
+    await mark_task_as_completed(db, test_task.id, test_user.id)
 
-    t1.status = Status.completed
-    t2.status = Status.completed
-    await db.commit()
-
-    items, total = await get_tasks_for_user(
-        db,
+    task = await mark_task_as_pending(
+        db=db,
+        task_id=test_task.id,
         user_id=test_user.id,
-        status_filter=StatusFilter.completed,
     )
 
-    assert total == 2
-    
+    assert task.status == Status.pending
+    assert task.completed_at is None
+
+@pytest.mark.asyncio
+async def test_mark_task_as_pending_idempotent(db, test_user, test_task):
+    task = await mark_task_as_pending(
+        db=db,
+        task_id=test_task.id,
+        user_id=test_user.id,
+    )
+
+    assert task.status == Status.pending
+    assert task.completed_at is None
+
+@pytest.mark.asyncio
+async def test_mark_task_as_pending_not_owned_raises(
+    db,
+    test_task,
+    second_user,
+):
+    with pytest.raises(HTTPException) as exc:
+        await mark_task_as_pending(
+            db=db,
+            task_id=test_task.id,
+            user_id=second_user.id,
+        )
+
+    assert exc.value.status_code == 404
+
+@pytest.mark.asyncio
+async def test_mark_task_as_pending_not_found_raises(db, test_user):
+    with pytest.raises(HTTPException) as exc:
+        await mark_task_as_pending(
+            db=db,
+            task_id=999999,
+            user_id=test_user.id,
+        )
+
+    assert exc.value.status_code == 404
+
 # ================== LIST TESTS ==================
 
 @pytest.mark.asyncio
