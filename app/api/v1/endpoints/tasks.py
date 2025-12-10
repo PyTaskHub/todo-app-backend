@@ -9,7 +9,7 @@ from typing import Optional
 from app.api.deps import CurrentUser, get_db
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskListResponse, TaskStatsResponse
 from app.schemas.task_filters import TaskSortBy, SortOrder, StatusFilter 
-from app.crud.task import create_task, delete_the_task, update_task, get_task_by_id, get_tasks_for_user, get_task_statistics_for_user
+from app.crud.task import create_task, delete_the_task, update_task, get_task_by_id, get_tasks_for_user, get_task_statistics_for_user, mark_task_as_completed, mark_task_as_pending
 
 router = APIRouter()
 
@@ -213,3 +213,71 @@ async def delete_task(
         task_id=task_id,
         user_id=current_user.id
     )
+
+
+@router.patch(
+    "/{task_id}/complete",
+    response_model=TaskResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        401: {"description": "Not authenticated"},
+        404: {"description": "Task not found or doesn't belong to user"},
+    },
+)
+async def complete_task(
+    task_id: int,
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),
+) -> TaskResponse:
+    """
+    Mark task as completed.
+
+    - Requires Authorization: Bearer <token>
+    - Only task owner can mark it as completed
+    - Sets **status** to "completed"
+    - Sets **completed_at** to current UTC timestamp
+    - Updates **updated_at** timestamp
+    - Idempotent: if task is already completed, returns it unchanged
+
+    Returns updated task in TaskResponse format.
+    """
+    task = await mark_task_as_completed(
+        db=db,
+        task_id=task_id,
+        user_id=current_user.id
+    )
+    return task
+
+
+@router.patch(
+    "/{task_id}/uncomplete",
+    response_model=TaskResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        401: {"description": "Not authenticated"},
+        404: {"description": "Task not found or doesn't belong to user"},
+    },
+)
+async def uncomplete_task(
+    task_id: int,
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),
+) -> TaskResponse:
+    """
+    Mark task as pending/incomplete.
+
+    - Requires Authorization: Bearer <token>
+    - Only task owner can mark it as pending
+    - Sets **status** to "pending"
+    - Clears **completed_at** (sets to null)
+    - Updates **updated_at** timestamp
+    - Idempotent: if task is already pending, returns it unchanged
+
+    Returns updated task in TaskResponse format.
+    """
+    task = await mark_task_as_pending(
+        db=db,
+        task_id=task_id,
+        user_id=current_user.id
+    )
+    return task
