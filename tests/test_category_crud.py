@@ -158,20 +158,9 @@ async def test_get_user_categories_sorting(db, test_user, create_category_factor
     assert names == ["cats", "dogs", "others"]
 
 @pytest.mark.asyncio
-async def test_get_user_categories_isolation(db, create_category_factory, test_user):
-    from app.models.user import User
-    import uuid
-    other = User(
-        username=f"xx_{uuid.uuid4().hex}",
-        email=f"yy_{uuid.uuid4().hex}@x.com",
-        password_hash="test"
-    )
-    db.add(other)
-    await db.commit()
-    await db.refresh(other)
-
+async def test_get_user_categories_isolation(db, create_category_factory, test_user, second_user):
     await create_category_factory(test_user.id, name="mine")
-    await create_category_factory(other.id, name="not mine")
+    await create_category_factory(second_user.id, name="not mine")
 
     rows = await get_user_categories_with_tasks_count(db, test_user.id)
     assert len(rows) == 1
