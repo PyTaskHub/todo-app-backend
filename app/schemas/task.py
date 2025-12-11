@@ -11,8 +11,9 @@ class TaskBase(BaseModel):
     """
     title: str = Field (
         ...,
+        min_length=1,
         max_length=200,
-        description="title (max 200 characters)",
+        description="title (1-200 characters)",
         examples=["buy groceries"],
     )
 
@@ -52,6 +53,7 @@ class TaskUpdate(BaseModel):
     """
     title: Optional[str] = Field(
         None,
+        min_length=1,
         max_length=200,
         description="New title",
     )

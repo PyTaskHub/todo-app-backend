@@ -2,6 +2,7 @@
 Pytest configuration and fixtures.
 """
 import asyncio
+import pytest_asyncio
 from typing import Generator, AsyncGenerator, Dict
 
 import pytest
@@ -120,4 +121,12 @@ def access_token(client: TestClient, register_user: Dict[str, str]) -> str:
     assert "access_token" in data
     return data["access_token"]
     
+@pytest_asyncio.fixture
+async def db():
+    """
+    Returns AsyncSession for unit tests.
+    """
+    async with TestingSessionLocal() as session:
+        yield session
+
 # Add more fixtures as needed (e.g. database session)
