@@ -16,7 +16,36 @@ router = APIRouter()
 @router.post(
     "/",
     response_model=TaskResponse,
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new task",
+    description="Create a new task belonging to the authenticated user",
+    responses={
+        201: {
+            "description": "Task successfully created.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "title": "Buy groceries",
+                        "description": "Milk, eggs, tea, coffee",
+                        "category_id": 1,
+                        "priority": "medium",
+                        "due_date": "2025-12-11T10:08:01.869000Z",
+                        "id": 12,
+                        "user_id": 1,
+                        "status": "pending",
+                        "created_at": "2025-12-11T10:10:34.672454Z",
+                        "updated_at": "2025-12-11T10:12:10.123000Z",
+                        "completed_at": "2025-12-11T10:12:10.123000Z",
+                        "category_name": "Personal",
+                        "category_description": "Tasks related to personal life"
+                        }
+                    }
+                }
+            },
+        400: {"description": "Category doesn't exist or doesn't belong to the user"},
+        401: {"description": "Not authenticated"},
+        422: {"description": "Validation error. The request body does not match the expected schema"},
+    }
 )
 async def create_new_task(
     task_in: TaskCreate,
@@ -44,7 +73,37 @@ async def create_new_task(
 @router.put(
     "/{task_id}",
     response_model=TaskResponse,
-    status_code=status.HTTP_200_OK
+    status_code=status.HTTP_200_OK,
+    summary="Update an existing task",
+    description="Update fields of a task belonging to the authenticated user",
+    responses={
+        200: {
+            "description": "Task successfully updated.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "title": "Buy groceries (updated)",
+                        "description": "Milk, eggs, tea, coffee, juice",
+                        "category_id": 1,
+                        "priority": "high",
+                        "due_date": "2025-12-12T10:00:00Z",
+                        "id": 12,
+                        "user_id": 1,
+                        "status": "pending",
+                        "created_at": "2025-12-11T10:10:34.672454Z",
+                        "updated_at": "2025-12-11T11:00:00.000000Z",
+                        "completed_at": "2025-12-11T10:12:10.123000Z",
+                        "category_name": "Personal",
+                        "category_description": "Tasks related to personal life"
+                    }
+                }
+            }
+        },
+        400: {"description": "Category doesn't exist or doesn't belong to the user"},
+        401: {"description": "Not authenticated"},
+        404: {"description": "Task not found or doesn't belong to the user"},
+        422: {"description": "Validation error. The request body does not match the expected schema"},
+    }
 )
 async def update_existing_task(
     task_id: int,
@@ -76,9 +135,24 @@ async def update_existing_task(
     "/stats",
     response_model=TaskStatsResponse,
     status_code=status.HTTP_200_OK,
+    summary="Get task statistics",
+    description="Return statistics for tasks belonging to the authenticated user",
     responses={
+        200: {
+            "description": "Statistics successfully retrieved.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "total": 14,
+                        "completed": 8,
+                        "pending": 6,
+                        "completion_rate": 57.14
+                    }
+                }
+            }
+        },
         401: {"description": "Not authenticated"},
-    },
+    }
 )
 async def get_task_statistics(
     current_user: CurrentUser,
@@ -104,7 +178,36 @@ async def get_task_statistics(
 @router.get(
     "/{task_id}",
     response_model=TaskResponse,
-    status_code=status.HTTP_200_OK
+    status_code=status.HTTP_200_OK,
+    summary="Get a single task",
+    description="Retrieve one task belonging to the authenticated user",
+    responses={
+        200: {
+            "description": "Task successfully retrieved.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "title": "Buy groceries",
+                        "description": "Milk, eggs, tea, coffee",
+                        "category_id": 1,
+                        "priority": "medium",
+                        "due_date": "2025-12-11T10:08:01.869000Z",
+                        "id": 12,
+                        "user_id": 1,
+                        "status": "pending",
+                        "created_at": "2025-12-11T10:10:34.672454Z",
+                        "updated_at": "2025-12-11T10:12:10.123000Z",
+                        "completed_at": "2025-12-11T10:12:10.123000Z",
+                        "category_name": "Personal",
+                        "category_description": "Tasks related to personal life"
+                    }
+                }
+            }
+        },
+        401: {"description": "Not authenticated"},
+        404: {"description": "Task not found or doesn't belong to the user"},
+        422: {"description": "Validation error. The request body does not match the expected schema"},
+    }
 )
 async def get_single_task(
     task_id: int,
@@ -131,8 +234,59 @@ async def get_single_task(
 @router.get(
     "/",
     response_model=TaskListResponse,
-    status_code=status.HTTP_200_OK
-)    
+    status_code=status.HTTP_200_OK,
+    summary="Get tasks",
+    description="Return a filtered and paginated list of tasks belonging to the authenticated user",
+    responses={
+        200: {
+            "description": "Tasks successfully retrieved.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "items": [
+                            {
+                                "title": "Buy groceries",
+                                "description": "Milk, eggs, tea, coffee",
+                                "category_id": 1,
+                                "priority": "medium",
+                                "due_date": "2025-12-11T10:08:01.869000Z",
+                                "id": 12,
+                                "user_id": 1,
+                                "status": "pending",
+                                "created_at": "2025-12-11T10:10:34.672454Z",
+                                "updated_at": "2025-12-11T10:12:10.123000Z",
+                                "completed_at": None,
+                                "category_name": "Personal",
+                                "category_description": "Tasks related to personal life"
+                            },
+                            {
+                                "title": "Call mom",
+                                "description": "Weekly check-in",
+                                "category_id": 2,
+                                "priority": "low",
+                                "due_date": "2025-12-12T15:00:00Z",
+                                "id": 13,
+                                "user_id": 1,
+                                "status": "completed",
+                                "created_at": "2025-12-10T09:00:00Z",
+                                "updated_at": "2025-12-11T09:30:00Z",
+                                "completed_at": "2025-12-11T09:30:00Z",
+                                "category_name": "Family",
+                                "category_description": "Family-related tasks"
+                            }
+                        ],
+                        "total": 2,
+                        "limit": 20,
+                        "offset": 0
+                    }
+                }
+            }
+        },
+        401: {"description": "Not authenticated"},
+        404: {"description": "Category not found or doesn't belong to the user"},
+        422: {"description": "Invalid query parameters"},
+        }
+)  
 async def get_tasks(
     current_user: CurrentUser,
     limit: int = Query(20, ge=1, le=100),
@@ -189,10 +343,13 @@ async def get_tasks(
 @router.delete(
     "/{task_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a task",
+    description="Delete a task belonging to the authenticated user",
     responses={
+        204: {"description": "Task successfully deleted"},
         401: {"description": "Not authenticated"},
-        404: {"description": "Task not found or doesn't belong to user"},
-    },
+        404: {"description": "Task not found or doesn't belong to the user"},
+    }
 )
 async def delete_task(
     task_id: int,
@@ -219,10 +376,34 @@ async def delete_task(
     "/{task_id}/complete",
     response_model=TaskResponse,
     status_code=status.HTTP_200_OK,
+    summary="Mark task as completed",
+    description="Set task status to 'completed' and update timestamps",
     responses={
+        200: {
+            "description": "Task marked as completed.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 12,
+                        "title": "Buy groceries",
+                        "description": "Milk, eggs, tea, coffee",
+                        "category_id": 1,
+                        "priority": "medium",
+                        "due_date": "2025-12-11T10:08:01.869000Z",
+                        "user_id": 1,
+                        "status": "completed",
+                        "created_at": "2025-12-11T10:10:34.672454Z",
+                        "updated_at": "2025-12-11T11:15:00.000000Z",
+                        "completed_at": "2025-12-11T11:15:00.000000Z",
+                        "category_name": "Personal",
+                        "category_description": "Tasks related to personal life"
+                    }
+                }
+            }
+        },
         401: {"description": "Not authenticated"},
-        404: {"description": "Task not found or doesn't belong to user"},
-    },
+        404: {"description": "Task not found or doesn't belong to the user"},
+    }
 )
 async def complete_task(
     task_id: int,
@@ -253,10 +434,34 @@ async def complete_task(
     "/{task_id}/uncomplete",
     response_model=TaskResponse,
     status_code=status.HTTP_200_OK,
+    summary="Mark task as pending",
+    description="Set task status to 'pending' and clear completed_at timestamp.",
     responses={
+        200: {
+            "description": "Task marked as pending.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 12,
+                        "title": "Buy groceries",
+                        "description": "Milk, eggs, tea, coffee",
+                        "category_id": 1,
+                        "priority": "medium",
+                        "due_date": "2025-12-11T10:08:01.869000Z",
+                        "user_id": 1,
+                        "status": "pending",
+                        "created_at": "2025-12-11T10:10:34.672454Z",
+                        "updated_at": "2025-12-11T11:20:00.000000Z",
+                        "completed_at": None,
+                        "category_name": "Personal",
+                        "category_description": "Tasks related to personal life"
+                    }
+                }
+            }
+        },
         401: {"description": "Not authenticated"},
-        404: {"description": "Task not found or doesn't belong to user"},
-    },
+        404: {"description": "Task not found or doesn't belong to the user"},
+    }
 )
 async def uncomplete_task(
     task_id: int,
