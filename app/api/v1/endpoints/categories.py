@@ -56,6 +56,7 @@ async def create_new_category(
 
     return category
 
+
 @router.put(
     "/{category_id}",
     response_model=CategoryResponse,
@@ -169,6 +170,7 @@ async def get_user_categories(
         )
         for category, tasks_count in rows
     ]
+
 
 @router.delete(
     "/{category_id}",

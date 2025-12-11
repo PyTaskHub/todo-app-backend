@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
-
 @router.get(
     "/me",
     response_model=UserResponse,
@@ -33,7 +32,7 @@ async def get_current_user_profile(
     """
     return current_user
 
-# TODO: Task - Implement update user profile endpoint
+
 @router.put(
     "/me",
     response_model=UserResponse,
@@ -64,10 +63,12 @@ async def put_update_user_profile(
     )
     return updated_user
 
-# TODO: Task - Implement change password endpoint
+
 @router.post(
     "/me/change-password",
     status_code=status.HTTP_200_OK,
+    summary="Change password",
+    description="Change password for the authenticated user",
     responses={
         200: {"description": "Password changed successfully"},
         400: {"description": "Invalid input data"},
