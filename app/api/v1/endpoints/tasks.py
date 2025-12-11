@@ -32,7 +32,7 @@ router = APIRouter()
                         "due_date": "2025-12-11T10:08:01.869000Z",
                         "id": 12,
                         "user_id": 1,
-                        "status": "pending",
+                        "status": "completed",
                         "created_at": "2025-12-11T10:10:34.672454Z",
                         "updated_at": "2025-12-11T10:12:10.123000Z",
                         "completed_at": "2025-12-11T10:12:10.123000Z",
@@ -89,7 +89,7 @@ async def create_new_task(
                         "due_date": "2025-12-12T10:00:00Z",
                         "id": 12,
                         "user_id": 1,
-                        "status": "pending",
+                        "status": "completed",
                         "created_at": "2025-12-11T10:10:34.672454Z",
                         "updated_at": "2025-12-11T11:00:00.000000Z",
                         "completed_at": "2025-12-11T10:12:10.123000Z",
@@ -102,7 +102,7 @@ async def create_new_task(
         400: {"description": "Category doesn't exist or doesn't belong to the user"},
         401: {"description": "Not authenticated"},
         404: {"description": "Task not found or doesn't belong to the user"},
-        422: {"description": "Validation error. The request body does not match the expected schema"},
+        422: {"description": "Validation error. The path parameter or request body does not match the expected schema"},
     }
 )
 async def update_existing_task(
@@ -194,7 +194,7 @@ async def get_task_statistics(
                         "due_date": "2025-12-11T10:08:01.869000Z",
                         "id": 12,
                         "user_id": 1,
-                        "status": "pending",
+                        "status": "completed",
                         "created_at": "2025-12-11T10:10:34.672454Z",
                         "updated_at": "2025-12-11T10:12:10.123000Z",
                         "completed_at": "2025-12-11T10:12:10.123000Z",
@@ -206,8 +206,8 @@ async def get_task_statistics(
         },
         401: {"description": "Not authenticated"},
         404: {"description": "Task not found or doesn't belong to the user"},
-        422: {"description": "Validation error. The request body does not match the expected schema"},
-    }
+        422: {"description": "Validation error. Invalid path parameter"},
+   }
 )
 async def get_single_task(
     task_id: int,
@@ -284,18 +284,18 @@ async def get_single_task(
         },
         401: {"description": "Not authenticated"},
         404: {"description": "Category not found or doesn't belong to the user"},
-        422: {"description": "Invalid query parameters"},
+        422: {"description": "Validation error. Invalid query parameters"},
         }
 )  
 async def get_tasks(
     current_user: CurrentUser,
-    limit: int = Query(20, ge=1, le=100),
-    offset: int = Query(0, ge=0),
-    status_filter: StatusFilter = StatusFilter.all,
+    limit: int = Query(20, ge=1, le=100, description="Maximum number of tasks to return"),
+    offset: int = Query(0, ge=0, description="Number of tasks to skip before starting to return results"),
+    status_filter: StatusFilter = Query(StatusFilter.all, description="Filter by task status"),
     search: Optional[str] = Query(None, description="Search term for case-insensitive searching (optional)"),
-    category_id: Optional[str] = None,
-    sort_by: TaskSortBy = TaskSortBy.created_at,
-    order: SortOrder = SortOrder.desc,
+    category_id: Optional[int] = Query(None, description="Filter by category id belonging to the current user (optional)"),
+    sort_by: TaskSortBy = Query(TaskSortBy.created_at, description="Field to sort tasks by"),
+    order: SortOrder = Query(SortOrder.desc, description="Sort direction"), 
     db: AsyncSession = Depends(get_db),
 ) -> TaskListResponse:
     """
@@ -349,6 +349,7 @@ async def get_tasks(
         204: {"description": "Task successfully deleted"},
         401: {"description": "Not authenticated"},
         404: {"description": "Task not found or doesn't belong to the user"},
+        422: {"description": "Validation error. Invalid path parameter"},    
     }
 )
 async def delete_task(
@@ -403,6 +404,7 @@ async def delete_task(
         },
         401: {"description": "Not authenticated"},
         404: {"description": "Task not found or doesn't belong to the user"},
+        422: {"description": "Validation error. Invalid path parameter"},
     }
 )
 async def complete_task(
@@ -461,6 +463,7 @@ async def complete_task(
         },
         401: {"description": "Not authenticated"},
         404: {"description": "Task not found or doesn't belong to the user"},
+        422: {"description": "Validation error. Invalid path parameter"},    
     }
 )
 async def uncomplete_task(

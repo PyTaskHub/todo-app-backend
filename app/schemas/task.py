@@ -116,8 +116,28 @@ class TaskResponse(TaskBase):
         description="Category description (optional field)"
      )
     
-    model_config = ConfigDict(from_attributes=True)
-
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "examples": [
+                {
+                    "id": 12,
+                    "user_id": 1,
+                    "title": "Buy groceries",
+                    "description": "Milk, eggs, tea, coffee",
+                    "category_id": 1,
+                    "priority": "medium",
+                    "due_date": "2025-12-11T10:08:01.869000Z",
+                    "status": "pending",
+                    "created_at": "2025-12-11T10:10:34.672454Z",
+                    "updated_at": "2025-12-11T10:12:10.123000Z",
+                    "completed_at": None,
+                    "category_name": "Personal",
+                    "category_description": "Tasks related to personal life",
+                }
+            ]
+        },
+    )
 
 class TaskListResponse(BaseModel):
     """
@@ -145,8 +165,35 @@ class TaskListResponse(BaseModel):
         examples=[0],
     )
 
-    model_config = ConfigDict(from_attributes=True)
-
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "examples": [
+                {
+                    "items": [
+                        {
+                            "id": 12,
+                            "user_id": 1,
+                            "title": "Buy groceries",
+                            "description": "Milk, eggs, tea, coffee",
+                            "category_id": 1,
+                            "priority": "medium",
+                            "due_date": "2025-12-11T10:08:01.869000Z",
+                            "status": "pending",
+                            "created_at": "2025-12-11T10:10:34.672454Z",
+                            "updated_at": "2025-12-11T10:12:10.123000Z",
+                            "completed_at": None,
+                            "category_name": "Personal",
+                            "category_description": "Tasks related to personal life",
+                        }
+                    ],
+                    "total": 1,
+                    "limit": 20,
+                    "offset": 0,
+                }
+            ]
+        },
+    )
 
 class TaskStatsResponse(BaseModel):
     """
@@ -171,4 +218,17 @@ class TaskStatsResponse(BaseModel):
         ...,
         description="Completion percentage (0-100)",
         examples=[60.25],
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "total": 25,
+                    "completed": 15,
+                    "pending": 10,
+                    "completion_rate": 60.25,
+                }
+            ]
+        }
     )
