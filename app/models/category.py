@@ -1,29 +1,30 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, UniqueConstraint, Index
+from sqlalchemy import (
+    Column,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
 
+
 class Category(Base):
-    __tablename__ = 'categories'
-    name = Column(
-        String(100), 
-        nullable=False,
-        comment="Category name"
-        )
-    description = Column(
-        Text, 
-        nullable=True,
-        comment="Category description"
-        )
+    __tablename__ = "categories"
+    name = Column(String(100), nullable=False, comment="Category name")
+    description = Column(Text, nullable=True, comment="Category description")
     user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
-        comment="User who owns this category"
+        comment="User who owns this category",
     )
     __table_args__ = (
-        UniqueConstraint('name', 'user_id', name='uq_user_category_name'),
-        Index('ix_category_user_id', 'user_id'),
+        UniqueConstraint("name", "user_id", name="uq_user_category_name"),
+        Index("ix_category_user_id", "user_id"),
     )
 
     user = relationship("User", back_populates="categories")

@@ -1,13 +1,14 @@
 import re
+
 import pytest
 from fastapi import status
 from sqlalchemy.ext.asyncio import AsyncSession
-
 
 BASE_URL = "/health"
 
 
 # ================== INTEGRATION TESTS ==================
+
 
 def test_health_success_full_payload(client):
     resp = client.get("/health")
@@ -50,6 +51,7 @@ def test_health_timestamp_iso_format(client):
 
 
 # ================== UNIT TESTS (monkeypatch) ==================
+
 
 @pytest.mark.asyncio
 async def test_health_db_exception_returns_503(client, monkeypatch):
@@ -97,6 +99,7 @@ async def test_health_db_exception_has_timestamp(client, monkeypatch):
 
     resp = client.get(BASE_URL)
     assert "timestamp" in resp.json()
+
 
 @pytest.mark.asyncio
 async def test_health_db_exception_timestamp_is_string(client, monkeypatch):

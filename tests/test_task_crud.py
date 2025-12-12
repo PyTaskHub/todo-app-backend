@@ -1,26 +1,27 @@
 import uuid
+
 import pytest
 import pytest_asyncio
 from fastapi import HTTPException
 
 from app.crud.task import (
     create_task,
-    get_task_by_id,
-    update_task,
     delete_the_task,
-    get_tasks_for_user,
+    get_task_by_id,
     get_task_statistics_for_user,
+    get_tasks_for_user,
     mark_task_as_completed,
-    mark_task_as_pending
+    mark_task_as_pending,
+    update_task,
 )
-
-from app.schemas.task import TaskCreate, TaskUpdate
-from app.schemas.task_filters import TaskSortBy, SortOrder, StatusFilter 
-from app.models.user import User
 from app.models.category import Category
-from app.models.task import Status, Priority
+from app.models.task import Priority, Status
+from app.models.user import User
+from app.schemas.task import TaskCreate, TaskUpdate
+from app.schemas.task_filters import SortOrder, StatusFilter, TaskSortBy
 
 # ================== FIXTURES ==================
+
 
 @pytest_asyncio.fixture
 async def test_user(db):
@@ -50,6 +51,7 @@ async def second_user(db):
     await db.commit()
     await db.refresh(user)
     return user
+
 
 @pytest_asyncio.fixture
 async def owned_category(db, test_user):
@@ -84,7 +86,9 @@ async def test_task(db, test_user):
     )
     return task
 
+
 # ================== CREATE TESTS ==================
+
 
 @pytest.mark.asyncio
 async def test_create_task_success(db, test_user):
@@ -124,7 +128,9 @@ async def test_create_task_with_foreign_category_raises(
 
     assert exc.value.status_code == 400
 
+
 # ================== READ TESTS ==================
+
 
 @pytest.mark.asyncio
 async def test_get_task_by_id_success(db, test_user, test_task):
@@ -141,8 +147,10 @@ async def test_get_task_not_owned_raises(db, test_task, second_user):
             task_id=test_task.id,
         )
     assert exc.value.status_code == 404
-    
+
+
 # ================== READ (FILTERING/SORTING) TESTS ==================
+
 
 @pytest.mark.asyncio
 async def test_get_tasks_category_filter_null(db, test_user):
@@ -157,6 +165,7 @@ async def test_get_tasks_category_filter_null(db, test_user):
     assert total == 1
     assert items[0].category_id is None
 
+
 @pytest.mark.asyncio
 async def test_get_tasks_invalid_category_filter(db, test_user):
     with pytest.raises(HTTPException) as exc:
@@ -167,6 +176,7 @@ async def test_get_tasks_invalid_category_filter(db, test_user):
         )
 
     assert exc.value.status_code == 422
+
 
 @pytest.mark.asyncio
 async def test_get_tasks_foreign_category_filter(db, test_user, foreign_category):
@@ -179,6 +189,7 @@ async def test_get_tasks_foreign_category_filter(db, test_user, foreign_category
 
     assert exc.value.status_code == 404
 
+
 @pytest.mark.asyncio
 async def test_get_tasks_search_empty_string(db, test_user):
     await create_task(db, TaskCreate(title="Task"), test_user.id)
@@ -190,6 +201,7 @@ async def test_get_tasks_search_empty_string(db, test_user):
     )
 
     assert total == 1
+
 
 @pytest.mark.asyncio
 async def test_get_tasks_sort_by_status_asc(db, test_user):
@@ -204,6 +216,7 @@ async def test_get_tasks_sort_by_status_asc(db, test_user):
 
     assert total == 1
 
+
 @pytest.mark.asyncio
 async def test_get_tasks_status_filter_pending(db, test_user):
     await create_task(db, TaskCreate(title="Pending task"), test_user.id)
@@ -216,6 +229,7 @@ async def test_get_tasks_status_filter_pending(db, test_user):
 
     assert total == 1
     assert items[0].status == Status.pending
+
 
 @pytest.mark.asyncio
 async def test_get_tasks_status_filter_completed(db, test_user):
@@ -245,7 +259,8 @@ async def test_get_tasks_status_filter_all(db, test_user):
     )
 
     assert total == 2
-    
+
+
 @pytest.mark.asyncio
 async def test_get_tasks_completed_total_count(db, test_user):
     t1 = await create_task(db, TaskCreate(title="Done 1"), test_user.id)
@@ -263,7 +278,9 @@ async def test_get_tasks_completed_total_count(db, test_user):
 
     assert total == 2
 
+
 # ================== UPDATE TESTS ==================
+
 
 @pytest.mark.asyncio
 async def test_update_task_title(db, test_user, test_task):
@@ -318,7 +335,8 @@ async def test_update_task_with_foreign_category_raises(
             user_id=test_user.id,
         )
     assert exc.value.status_code == 400
-    
+
+
 @pytest.mark.asyncio
 async def test_update_task_no_fields(db, test_user, test_task):
     updated = await update_task(
@@ -329,7 +347,8 @@ async def test_update_task_no_fields(db, test_user, test_task):
     )
 
     assert updated.id == test_task.id
-    
+
+
 @pytest.mark.asyncio
 async def test_update_task_remove_category(db, test_user, test_task):
     updated = await update_task(
@@ -340,6 +359,7 @@ async def test_update_task_remove_category(db, test_user, test_task):
     )
 
     assert updated.category_id is None
+
 
 @pytest.mark.asyncio
 async def test_mark_task_as_completed_success(db, test_user, test_task):
@@ -352,7 +372,7 @@ async def test_mark_task_as_completed_success(db, test_user, test_task):
     assert task.status == Status.completed
     assert task.completed_at is not None
 
-    
+
 @pytest.mark.asyncio
 async def test_mark_task_as_completed_idempotent(db, test_user, test_task):
     await mark_task_as_completed(db, test_task.id, test_user.id)
@@ -364,6 +384,7 @@ async def test_mark_task_as_completed_idempotent(db, test_user, test_task):
     )
 
     assert task.status == Status.completed
+
 
 @pytest.mark.asyncio
 async def test_mark_task_as_completed_not_owned_raises(
@@ -380,6 +401,7 @@ async def test_mark_task_as_completed_not_owned_raises(
 
     assert exc.value.status_code == 404
 
+
 @pytest.mark.asyncio
 async def test_mark_task_as_completed_not_found_raises(db, test_user):
     with pytest.raises(HTTPException) as exc:
@@ -390,6 +412,7 @@ async def test_mark_task_as_completed_not_found_raises(db, test_user):
         )
 
     assert exc.value.status_code == 404
+
 
 @pytest.mark.asyncio
 async def test_mark_task_as_pending_success(db, test_user, test_task):
@@ -404,6 +427,7 @@ async def test_mark_task_as_pending_success(db, test_user, test_task):
     assert task.status == Status.pending
     assert task.completed_at is None
 
+
 @pytest.mark.asyncio
 async def test_mark_task_as_pending_idempotent(db, test_user, test_task):
     task = await mark_task_as_pending(
@@ -414,6 +438,7 @@ async def test_mark_task_as_pending_idempotent(db, test_user, test_task):
 
     assert task.status == Status.pending
     assert task.completed_at is None
+
 
 @pytest.mark.asyncio
 async def test_mark_task_as_pending_not_owned_raises(
@@ -430,6 +455,7 @@ async def test_mark_task_as_pending_not_owned_raises(
 
     assert exc.value.status_code == 404
 
+
 @pytest.mark.asyncio
 async def test_mark_task_as_pending_not_found_raises(db, test_user):
     with pytest.raises(HTTPException) as exc:
@@ -441,7 +467,9 @@ async def test_mark_task_as_pending_not_found_raises(db, test_user):
 
     assert exc.value.status_code == 404
 
+
 # ================== LIST TESTS ==================
+
 
 @pytest.mark.asyncio
 async def test_get_tasks_for_user_only_own(db, test_user, second_user):
@@ -460,6 +488,7 @@ async def test_get_tasks_empty_for_other_user(db, test_user):
     assert items == []
     assert total == 0
 
+
 @pytest.mark.asyncio
 async def test_task_statistics_empty(db, test_user):
     stats = await get_task_statistics_for_user(db, test_user.id)
@@ -467,7 +496,8 @@ async def test_task_statistics_empty(db, test_user):
     assert stats["total"] == 0
     assert stats["completed"] == 0
     assert stats["completion_rate"] == 0.0
-    
+
+
 @pytest.mark.asyncio
 async def test_task_statistics_completed(db, test_user):
     task = await create_task(db, TaskCreate(title="Done"), test_user.id)
@@ -480,7 +510,9 @@ async def test_task_statistics_completed(db, test_user):
     assert stats["completed"] == 1
     assert stats["completion_rate"] == 100.0
 
+
 # ================== DELETE TESTS ==================
+
 
 @pytest.mark.asyncio
 async def test_delete_task_success(db, test_user, test_task):

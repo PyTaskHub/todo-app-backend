@@ -1,17 +1,17 @@
 """
 Pytest configuration and fixtures.
 """
+
 import asyncio
-import pytest_asyncio
-from typing import Generator, AsyncGenerator, Dict
+from typing import AsyncGenerator, Dict, Generator
 
 import pytest
+import pytest_asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.main import app
 from app.db.session import Base, get_db
-
+from app.main import app
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_db.sqlite"
 
@@ -78,6 +78,7 @@ def event_loop():
     Create an event loop for async tests.
     """
     import asyncio
+
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
@@ -120,7 +121,8 @@ def access_token(client: TestClient, register_user: Dict[str, str]) -> str:
     data = response.json()
     assert "access_token" in data
     return data["access_token"]
-    
+
+
 @pytest_asyncio.fixture
 async def db():
     """
@@ -128,5 +130,6 @@ async def db():
     """
     async with TestingSessionLocal() as session:
         yield session
+
 
 # Add more fixtures as needed (e.g. database session)

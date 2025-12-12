@@ -1,10 +1,12 @@
 import uuid
+
 import pytest
 
 BASE_URL = "/api/v1/users"
 
 
 # ================== HELPERS ==================
+
 
 def create_user_and_login(client):
     user_data = {
@@ -31,6 +33,7 @@ def create_user_and_login(client):
 
 # ================== FIXTURES ==================
 
+
 @pytest.fixture
 def user_and_auth_headers(client):
     return create_user_and_login(client)
@@ -43,6 +46,7 @@ def auth_headers(user_and_auth_headers):
 
 
 # ================== GET /me ==================
+
 
 def test_get_me_success(client, auth_headers):
     resp = client.get(f"{BASE_URL}/me", headers=auth_headers)
@@ -59,7 +63,9 @@ def test_get_me_unauthorized(client):
     resp = client.get(f"{BASE_URL}/me")
     assert resp.status_code == 401
 
+
 # ================== PUT /me ==================
+
 
 def test_update_me_email(client, auth_headers):
     resp = client.put(
@@ -147,15 +153,13 @@ def test_update_me_unauthorized(client):
 
 
 def test_update_me_empty_payload_returns_same_user(client, auth_headers):
-    resp = client.put(
-        "/api/v1/users/me",
-        headers=auth_headers,
-        json={}
-    )
+    resp = client.put("/api/v1/users/me", headers=auth_headers, json={})
 
     assert resp.status_code == 200
-    
+
+
 # ================== POST /me/change-password ==================
+
 
 def test_change_password_success(client, user_and_auth_headers):
     user, headers = user_and_auth_headers
@@ -252,7 +256,7 @@ def test_change_password_response_message(client):
         json={
             "current_password": user["password"],
             "new_password": "NewStrongPass123",
-        }
+        },
     )
 
     assert resp.status_code == 200

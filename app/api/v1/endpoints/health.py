@@ -32,7 +32,9 @@ async def health_check(
             content={
                 "status": "healthy",
                 "database": "connected",
-                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "timestamp": datetime.now(timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
             },
         )
     except Exception:
@@ -41,6 +43,8 @@ async def health_check(
             content={
                 "status": "unhealthy",
                 "database": "unavailable",
-                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "timestamp": datetime.now(timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
             },
-    )
+        )

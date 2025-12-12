@@ -1,13 +1,15 @@
 """
 CRUD operations for User model.
 """
-from fastapi import HTTPException, status
+
 from typing import Optional
+
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate, UserProfileUpdate
+from app.schemas.user import UserCreate, UserProfileUpdate, UserUpdate
 
 
 async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[User]:
@@ -87,11 +89,7 @@ async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
     return db_user
 
 
-async def update_user(
-        db: AsyncSession,
-        db_user: User,
-        user_in: UserUpdate
-) -> User:
+async def update_user(db: AsyncSession, db_user: User, user_in: UserUpdate) -> User:
     """
     Update user information.
 
@@ -121,9 +119,7 @@ async def update_user(
 
 
 async def update_user_profile(
-    db: AsyncSession, 
-    user: User,
-    profile_update: UserProfileUpdate
+    db: AsyncSession, user: User, profile_update: UserProfileUpdate
 ) -> User:
     """
     Updates the profile of a user, checking for email uniqueness.
@@ -138,16 +134,13 @@ async def update_user_profile(
 
         if new_email != user.email:
             existing_user_with_new_email_orm = await db.scalar(
-                 select(User).where(
-                    User.email == new_email, 
-                    User.id != user.id)
+                select(User).where(User.email == new_email, User.id != user.id)
             )
-
 
             if existing_user_with_new_email_orm:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,  # 409
-                    detail="Email already registered"
+                    detail="Email already registered",
                 )
 
     for field, value in update_data.items():
@@ -160,36 +153,33 @@ async def update_user_profile(
 
 
 async def change_user_password(
-    db: AsyncSession,
-    user: User,
-    current_password: str,
-    new_password: str
+    db: AsyncSession, user: User, current_password: str, new_password: str
 ) -> User:
     """
     Change user password with current password verification.
-    
+
     Args:
         db: Database session
         user: User object to update
         current_password: Current password for verification
         new_password: New password to set
-    
+
     Returns:
         Updated User object
-    
+
     Raises:
         HTTPException: 401 if current password is incorrect
     """
     if not user.verify_password(current_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect current password"
+            detail="Incorrect current password",
         )
-    
+
     user.set_password(new_password)
-    
+
     db.add(user)
     await db.commit()
     await db.refresh(user)
-    
+
     return user

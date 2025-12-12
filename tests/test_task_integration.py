@@ -1,13 +1,16 @@
 import uuid
+
 import pytest
 
 BASE_URL = "/api/v1/tasks"
 
 # ================== FIXTURES ==================
 
+
 @pytest.fixture
 def auth_headers(access_token):
     return {"Authorization": f"Bearer {access_token}"}
+
 
 @pytest.fixture
 def second_auth_headers(client):
@@ -26,6 +29,7 @@ def second_auth_headers(client):
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
+
 @pytest.fixture
 def created_task(client, auth_headers):
     response = client.post(
@@ -35,6 +39,7 @@ def created_task(client, auth_headers):
     )
     assert response.status_code == 201
     return response.json()
+
 
 @pytest.fixture
 def foreign_category(client, second_auth_headers):
@@ -46,7 +51,9 @@ def foreign_category(client, second_auth_headers):
     assert response.status_code == 201
     return response.json()
 
+
 # ================== POST /tasks ==================
+
 
 def test_create_task_success(client, auth_headers):
     response = client.post(
@@ -83,7 +90,8 @@ def test_create_task_empty_payload(client, auth_headers):
         json={},
     )
     assert response.status_code == 422
-    
+
+
 def test_cannot_create_task_with_foreign_category(
     client,
     auth_headers,
@@ -100,7 +108,9 @@ def test_cannot_create_task_with_foreign_category(
 
     assert response.status_code == 400
 
+
 # ================== GET /tasks ==================
+
 
 def test_get_tasks_list(client, auth_headers):
     response = client.get(
@@ -181,7 +191,9 @@ def test_get_tasks_large_offset(client, auth_headers):
     )
     assert response.status_code == 200
 
+
 # ================== GET /tasks/{id} ==================
+
 
 def test_get_task_by_id_success(client, auth_headers, created_task):
     response = client.get(
@@ -200,7 +212,9 @@ def test_get_task_not_found(client, auth_headers):
     )
     assert response.status_code == 404
 
+
 # ================== PUT /tasks/{id} ==================
+
 
 def test_update_task_success(client, auth_headers, created_task):
     response = client.put(
@@ -231,7 +245,8 @@ def test_update_task_not_found(client, auth_headers):
     )
 
     assert response.status_code == 404
-    
+
+
 def test_cannot_update_task_with_foreign_category(
     client,
     auth_headers,
@@ -248,6 +263,7 @@ def test_cannot_update_task_with_foreign_category(
 
     assert response.status_code == 400
 
+
 def test_complete_task_success(client, auth_headers, created_task):
     response = client.patch(
         f"{BASE_URL}/{created_task['id']}/complete",
@@ -259,6 +275,7 @@ def test_complete_task_success(client, auth_headers, created_task):
 
     assert data["status"] == "completed"
     assert data["completed_at"] is not None
+
 
 def test_complete_task_idempotent(client, auth_headers, created_task):
     client.patch(
@@ -274,12 +291,14 @@ def test_complete_task_idempotent(client, auth_headers, created_task):
     assert response.status_code == 200
     assert response.json()["status"] == "completed"
 
+
 def test_complete_task_unauthorized(client, created_task):
     response = client.patch(
         f"{BASE_URL}/{created_task['id']}/complete",
     )
 
     assert response.status_code == 401
+
 
 def test_complete_task_not_owned(client, created_task, second_auth_headers):
     response = client.patch(
@@ -289,6 +308,7 @@ def test_complete_task_not_owned(client, created_task, second_auth_headers):
 
     assert response.status_code == 404
 
+
 def test_complete_task_not_found(client, auth_headers):
     response = client.patch(
         f"{BASE_URL}/999999/complete",
@@ -296,6 +316,7 @@ def test_complete_task_not_found(client, auth_headers):
     )
 
     assert response.status_code == 404
+
 
 def test_uncomplete_task_success(client, auth_headers, created_task):
     client.patch(
@@ -314,6 +335,7 @@ def test_uncomplete_task_success(client, auth_headers, created_task):
     assert data["status"] == "pending"
     assert data["completed_at"] is None
 
+
 def test_uncomplete_task_idempotent(client, auth_headers, created_task):
     response = client.patch(
         f"{BASE_URL}/{created_task['id']}/uncomplete",
@@ -323,12 +345,14 @@ def test_uncomplete_task_idempotent(client, auth_headers, created_task):
     assert response.status_code == 200
     assert response.json()["status"] == "pending"
 
+
 def test_uncomplete_task_unauthorized(client, created_task):
     response = client.patch(
         f"{BASE_URL}/{created_task['id']}/uncomplete",
     )
 
     assert response.status_code == 401
+
 
 def test_uncomplete_task_not_owned(client, created_task, second_auth_headers):
     response = client.patch(
@@ -337,6 +361,7 @@ def test_uncomplete_task_not_owned(client, created_task, second_auth_headers):
     )
 
     assert response.status_code == 404
+
 
 def test_uncomplete_task_not_found(client, auth_headers):
     response = client.patch(
@@ -348,6 +373,7 @@ def test_uncomplete_task_not_found(client, auth_headers):
 
 
 # ================== DELETE /tasks/{id} ==================
+
 
 def test_delete_task_success(client, auth_headers, created_task):
     response = client.delete(
@@ -366,7 +392,9 @@ def test_delete_task_not_found(client, auth_headers):
 
     assert response.status_code == 404
 
+
 # ================== ISOLATION TESTS ==================
+
 
 def test_cannot_get_task_of_other_user(client, created_task, second_auth_headers):
     response = client.get(
@@ -375,6 +403,7 @@ def test_cannot_get_task_of_other_user(client, created_task, second_auth_headers
     )
 
     assert response.status_code == 404
+
 
 def test_cannot_update_task_of_other_user(client, created_task, second_auth_headers):
     response = client.put(
@@ -385,6 +414,7 @@ def test_cannot_update_task_of_other_user(client, created_task, second_auth_head
 
     assert response.status_code == 404
 
+
 def test_cannot_delete_task_of_other_user(client, created_task, second_auth_headers):
     response = client.delete(
         f"{BASE_URL}/{created_task['id']}",
@@ -392,5 +422,3 @@ def test_cannot_delete_task_of_other_user(client, created_task, second_auth_head
     )
 
     assert response.status_code == 404
-
-
