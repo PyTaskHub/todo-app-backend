@@ -51,7 +51,6 @@ async def second_user(db):
     await db.refresh(user)
     return user
 
-
 @pytest_asyncio.fixture
 async def owned_category(db, test_user):
     category = Category(
@@ -394,7 +393,6 @@ async def test_mark_task_as_completed_not_found_raises(db, test_user):
 
 @pytest.mark.asyncio
 async def test_mark_task_as_pending_success(db, test_user, test_task):
-    # make completed first
     await mark_task_as_completed(db, test_task.id, test_user.id)
 
     task = await mark_task_as_pending(

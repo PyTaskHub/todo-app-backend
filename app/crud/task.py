@@ -4,6 +4,7 @@ CRUD operations for Task model.
 from typing import Optional
 
 from sqlalchemy import select, func, asc, desc
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from datetime import datetime, timezone
@@ -75,6 +76,14 @@ async def create_task(
     db.add(db_task)
     await db.commit()
     await db.refresh(db_task)
+
+    query = (
+        select(Task)
+        .options(joinedload(Task.category))
+        .where(Task.id == db_task.id)
+    )
+    result = await db.execute(query)
+    db_task = result.scalar_one()
 
     return db_task
 

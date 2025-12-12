@@ -158,6 +158,14 @@ class Task(Base):
         Index("idx_tasks_status", "status"),
     )
 
+    @property
+    def category_name(self):
+        return self.category.name if self.category else None
+
+    @property
+    def category_description(self):
+        return self.category.description if self.category else None
+
     def __repr__(self) -> str:
         """
         String representation of Task.
