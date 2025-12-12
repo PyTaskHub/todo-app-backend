@@ -1,10 +1,8 @@
 """
 Pydantic schemas for authentication tokens.
 """
-from datetime import datetime
-from typing import Optional, Literal
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Token(BaseModel):
@@ -12,6 +10,7 @@ class Token(BaseModel):
     Access and refresh tokens response.
     Used as a response model for the login endpoint.
     """
+
     access_token: str = Field(
         description="JWT access token used for authorized requests",
     )
@@ -39,6 +38,7 @@ class TokenData(BaseModel):
     Data extracted from JWT token.
     This describes the structure of JWT tokens used in the project.
     """
+
     user_id: int | None = Field(
         default=None,
         description="User ID from the database",
@@ -57,10 +57,12 @@ class TokenData(BaseModel):
         }
     )
 
+
 class RefreshTokenRequest(BaseModel):
     """
     Request schema for token refresh.
     """
+
     refresh_token: str = Field(
         description="Valid JWT refresh token",
     )
@@ -73,11 +75,13 @@ class RefreshTokenRequest(BaseModel):
         }
     )
 
+
 class AccessTokenResponse(BaseModel):
     """
     Response with only access token.
     Used as a response model for the refresh endpoint.
     """
+
     access_token: str = Field(description="New JWT access token")
     token_type: str = Field(
         default="bearer",

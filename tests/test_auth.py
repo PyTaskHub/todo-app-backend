@@ -2,9 +2,8 @@ import pytest
 from fastapi import HTTPException
 
 from app.api.v1.endpoints import auth as auth_endpoints
-from app.schemas.user import UserCreate, UserLogin
 from app.schemas.token import RefreshTokenRequest
-
+from app.schemas.user import UserCreate, UserLogin
 
 # =============== /auth/register ===============
 
@@ -198,7 +197,9 @@ async def test_register_email_conflict_direct(monkeypatch):
         return None
 
     monkeypatch.setattr(auth_endpoints, "get_user_by_email", fake_get_user_by_email)
-    monkeypatch.setattr(auth_endpoints, "get_user_by_username", fake_get_user_by_username)
+    monkeypatch.setattr(
+        auth_endpoints, "get_user_by_username", fake_get_user_by_username
+    )
 
     user_in = UserCreate(
         username="newuser",
@@ -224,7 +225,9 @@ async def test_register_username_conflict_direct(monkeypatch):
         return object()
 
     monkeypatch.setattr(auth_endpoints, "get_user_by_email", fake_get_user_by_email)
-    monkeypatch.setattr(auth_endpoints, "get_user_by_username", fake_get_user_by_username)
+    monkeypatch.setattr(
+        auth_endpoints, "get_user_by_username", fake_get_user_by_username
+    )
 
     user_in = UserCreate(
         username="taken",
@@ -260,7 +263,9 @@ async def test_register_success_direct(monkeypatch):
         return DummyUser()
 
     monkeypatch.setattr(auth_endpoints, "get_user_by_email", fake_get_user_by_email)
-    monkeypatch.setattr(auth_endpoints, "get_user_by_username", fake_get_user_by_username)
+    monkeypatch.setattr(
+        auth_endpoints, "get_user_by_username", fake_get_user_by_username
+    )
     monkeypatch.setattr(auth_endpoints, "create_user", fake_create_user)
 
     user_in = UserCreate(
@@ -328,7 +333,9 @@ async def test_login_success_direct(monkeypatch):
 
     monkeypatch.setattr(auth_endpoints, "get_user_by_email", fake_get_user_by_email)
     monkeypatch.setattr(auth_endpoints, "create_access_token", fake_create_access_token)
-    monkeypatch.setattr(auth_endpoints, "create_refresh_token", fake_create_refresh_token)
+    monkeypatch.setattr(
+        auth_endpoints, "create_refresh_token", fake_create_refresh_token
+    )
 
     credentials = UserLogin(
         email="user@example.com",

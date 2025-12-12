@@ -1,9 +1,11 @@
 """
 Database session management with async SQLAlchemy.
 """
+
 from typing import AsyncGenerator
-from sqlalchemy import Column, Integer, DateTime
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+
+from sqlalchemy import Column, DateTime, Integer
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.sql import func
 
@@ -17,6 +19,7 @@ class Base(DeclarativeBase):
     All models should inherit from this class.
     Automatically includes: id, created_at, updated_at
     """
+
     # Allow unmapped attributes for SQLAlchemy 2.0 compatibility
     __allow_unmapped__ = True
 
@@ -25,14 +28,14 @@ class Base(DeclarativeBase):
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        comment="Timestamp when the record was created"
+        comment="Timestamp when the record was created",
     )
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
-        comment="Timestamp when the record was last updated"
+        comment="Timestamp when the record was last updated",
     )
 
 

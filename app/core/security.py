@@ -1,6 +1,7 @@
 """
 Security utilities for password hashing and JWT tokens.
 """
+
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
@@ -71,9 +72,7 @@ def create_access_token(data: Dict[str, Any]) -> str:
     )
     to_encode.update({"exp": expire, "type": "access"})
     encoded_jwt = jwt.encode(
-        to_encode,
-        settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     return encoded_jwt
 
@@ -97,9 +96,7 @@ def create_refresh_token(data: Dict[str, Any]) -> str:
     )
     to_encode.update({"exp": expire, "type": "refresh"})
     encoded_jwt = jwt.encode(
-        to_encode,
-        settings.SECRET_KEY,
-        algorithm=settings.ALGORITHM
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     return encoded_jwt
 
@@ -121,9 +118,7 @@ def verify_token(token: str) -> Dict[str, Any] | None:
     """
     try:
         payload = jwt.decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
         )
         return payload
     except JWTError:

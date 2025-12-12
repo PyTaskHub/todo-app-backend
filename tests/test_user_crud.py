@@ -1,21 +1,23 @@
 import uuid
+
 import pytest
 import pytest_asyncio
 from fastapi import HTTPException
 
-from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate, UserProfileUpdate
 from app.crud.user import (
-    get_user_by_id,
-    get_user_by_email,
-    get_user_by_username,
+    change_user_password,
     create_user,
+    get_user_by_email,
+    get_user_by_id,
+    get_user_by_username,
     update_user,
     update_user_profile,
-    change_user_password,
 )
+from app.models.user import User
+from app.schemas.user import UserCreate, UserProfileUpdate, UserUpdate
 
 # ================== FIXTURES ==================
+
 
 @pytest_asyncio.fixture
 async def test_user(db):
@@ -48,6 +50,7 @@ async def second_user(db):
 
 
 # ================== READ TESTS (get_user_by_*) ==================
+
 
 @pytest.mark.asyncio
 async def test_get_user_by_id_found(db, test_user):
@@ -89,6 +92,7 @@ async def test_get_user_by_username_not_found(db):
 
 
 # ================== CREATE TESTS ==================
+
 
 @pytest.mark.asyncio
 async def test_create_user_success(db):
@@ -134,6 +138,7 @@ async def test_create_user_flags(db):
 
 
 # ================== UPDATE TESTS ==================
+
 
 @pytest.mark.asyncio
 async def test_update_user_email(db, test_user):
@@ -279,6 +284,7 @@ async def test_update_user_profile_empty_update(db, test_user):
     )
 
     assert updated.id == test_user.id
+
 
 @pytest.mark.asyncio
 async def test_change_user_password_success(db, test_user):

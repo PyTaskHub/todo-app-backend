@@ -1,11 +1,12 @@
 """
 User model for authentication and user management.
 """
-from sqlalchemy import Boolean, String, Column
+
+from sqlalchemy import Boolean, Column, String
 from sqlalchemy.orm import relationship
 
-from app.db.session import Base
 from app.core.security import hash_password, verify_password
+from app.db.session import Base
 
 
 class User(Base):
@@ -14,6 +15,7 @@ class User(Base):
 
     Inherits id, created_at, updated_at from Base class.
     """
+
     __tablename__ = "users"
 
     # User credentials
@@ -22,46 +24,40 @@ class User(Base):
         unique=True,
         nullable=False,
         index=True,
-        comment="Unique username for login"
+        comment="Unique username for login",
     )
     email = Column(
         String(255),
         unique=True,
         nullable=False,
         index=True,
-        comment="User email address"
+        comment="User email address",
     )
     password_hash = Column(
-        String(255),
-        nullable=False,
-        comment="Hashed password (bcrypt)"
+        String(255), nullable=False, comment="Hashed password (bcrypt)"
     )
-    first_name = Column(
-        String(50), 
-        nullable=True
-    )
-    last_name = Column(
-        String(50), 
-        nullable=True
-    )
+    first_name = Column(String(50), nullable=True)
+    last_name = Column(String(50), nullable=True)
 
     # User status
     is_active = Column(
         Boolean,
         default=True,
         nullable=False,
-        comment="Whether the user account is active"
+        comment="Whether the user account is active",
     )
     is_superuser = Column(
         Boolean,
         default=False,
         nullable=False,
-        comment="Whether the user has superuser privileges"
+        comment="Whether the user has superuser privileges",
     )
 
     # Relationships (будут добавлены в задачах #6, #7)
     tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")
-    categories = relationship("Category", back_populates="user", cascade="all, delete-orphan")
+    categories = relationship(
+        "Category", back_populates="user", cascade="all, delete-orphan"
+    )
 
     def set_password(self, password: str) -> None:
         """
