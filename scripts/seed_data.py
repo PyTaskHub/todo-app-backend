@@ -46,17 +46,19 @@ async def main():
             await db.execute(delete(User).where(User.id.in_(user_ids)))
             
             await db.commit()
-        
+
         # Creating new users
         users = []
         for i in range(1, 9):
-            users.append(User(
+            user = User(
                 username=f"testuser{i}",
                 email=f"testuser{i}@example.com",
-                # hashed password - "password123"
-                password_hash="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"
-            ))
-        
+                is_active=True,
+                is_superuser=False
+            )
+            user.set_password("password123")
+            users.append(user)
+
         db.add_all(users)
         await db.flush()
 
