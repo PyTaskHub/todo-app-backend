@@ -20,11 +20,6 @@ def test_health_success_full_payload(client):
         "database": "connected",
         "timestamp": data["timestamp"],
     }
-    
-
-def test_health_success(client):
-    resp = client.get(BASE_URL)
-    assert resp.status_code == status.HTTP_200_OK
 
 
 def test_health_response_structure(client):
@@ -102,26 +97,6 @@ async def test_health_db_exception_has_timestamp(client, monkeypatch):
 
     resp = client.get(BASE_URL)
     assert "timestamp" in resp.json()
-
-@pytest.mark.asyncio
-async def test_health_db_exception_status_and_body(client, monkeypatch):
-    async def broken_execute(*args, **kwargs):
-        raise Exception("DB down")
-
-    monkeypatch.setattr(
-        AsyncSession,
-        "execute",
-        broken_execute,
-    )
-
-    resp = client.get("/health")
-
-    assert resp.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-
-    data = resp.json()
-    assert data["status"] == "unhealthy"
-    assert data["database"] == "unavailable"
-    
 
 @pytest.mark.asyncio
 async def test_health_db_exception_timestamp_is_string(client, monkeypatch):

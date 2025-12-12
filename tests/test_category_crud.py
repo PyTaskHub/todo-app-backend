@@ -166,6 +166,27 @@ async def test_get_user_categories_isolation(db, create_category_factory, test_u
     assert len(rows) == 1
     assert rows[0][0].name == "mine"
 
+
+@pytest.mark.asyncio
+async def test_get_user_categories_with_multiple_tasks_per_category(
+        db, test_user, create_category_factory, create_task_factory
+):
+    """Test that tasks_count correctly counts multiple tasks."""
+    cat1 = await create_category_factory(test_user.id, name="work")
+    cat2 = await create_category_factory(test_user.id, name="home")
+
+    # 5 tasks in work, 3 in home
+    for i in range(5):
+        await create_task_factory(test_user.id, title=f"work_{i}", category_id=cat1.id)
+    for i in range(3):
+        await create_task_factory(test_user.id, title=f"home_{i}", category_id=cat2.id)
+
+    rows = await get_user_categories_with_tasks_count(db, test_user.id)
+    result = {row[0].name: row[1] for row in rows}
+
+    assert result["work"] == 5
+    assert result["home"] == 3
+
 # ================== CREATE TESTS ==================
 
 @pytest.mark.asyncio
@@ -202,6 +223,17 @@ async def test_create_category_duplicate(db, test_user, create_category_factory)
         )
 
     assert exc.value.status_code == 409
+
+@pytest.mark.asyncio
+async def test_create_category_minimal_name_length(db, test_user):
+    """Test category creation with minimal allowed name length (3 chars)."""
+    created = await create_category(
+        db=db,
+        current_user_id=test_user.id,
+        category=CategoryCreate(name="ABC")
+    )
+    assert created.name == "ABC"
+    assert len(created.name) == 3
 
 # ================== UPDATE TESTS ==================
 
