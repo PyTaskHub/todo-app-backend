@@ -1,9 +1,9 @@
 """
 Application configuration using Pydantic Settings.
 """
-from typing import List
+
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator, Field
 
 
 class Settings(BaseSettings):
@@ -12,33 +12,19 @@ class Settings(BaseSettings):
 
     All required settings must be provided via .env file or environment variables.
     """
+
     # Application
-    APP_NAME: str = Field(
-        default="PyTaskHub",
-        description="Application name"
-    )
-    APP_VERSION: str = Field(
-        default="1.0.0",
-        description="Application version"
-    )
-    DEBUG: bool = Field(
-        default=True,
-        description="Debug mode"
-    )
+    APP_NAME: str = Field(default="PyTaskHub", description="Application name")
+    APP_VERSION: str = Field(default="1.0.0", description="Application version")
+    DEBUG: bool = Field(default=True, description="Debug mode")
     ENVIRONMENT: str = Field(
         default="development",
-        description="Environment name (development, staging, production)"
+        description="Environment name (development, staging, production)",
     )
 
     # Server
-    HOST: str = Field(
-        default="0.0.0.0",
-        description="Server host"
-    )
-    PORT: int = Field(
-        default=8000,
-        description="Server port"
-    )
+    HOST: str = Field(default="0.0.0.0", description="Server host")
+    PORT: int = Field(default=8000, description="Server port")
 
     # Database
     DATABASE_URL: str = Field(
@@ -46,20 +32,13 @@ class Settings(BaseSettings):
     )
 
     # Security
-    SECRET_KEY: str = Field(
-        description="Secret key for JWT (min 32 characters)"
-    )
-    ALGORITHM: str = Field(
-        default="HS256",
-        description="JWT algorithm"
-    )
+    SECRET_KEY: str = Field(description="Secret key for JWT (min 32 characters)")
+    ALGORITHM: str = Field(default="HS256", description="JWT algorithm")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
-        default=30,
-        description="Access token expiration time in minutes"
+        default=30, description="Access token expiration time in minutes"
     )
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(
-        default=7,
-        description="Refresh token expiration time in days"
+        default=7, description="Refresh token expiration time in days"
     )
 
     # CORS
@@ -77,16 +56,10 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in v.split(",") if origin.strip()]
 
     # Logging
-    LOG_LEVEL: str = Field(
-        default="INFO",
-        description="Logging level"
-    )
+    LOG_LEVEL: str = Field(default="INFO", description="Logging level")
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        case_sensitive=True,
-        extra="ignore",
-        env_nested_delimiter="__"
+        env_file=".env", case_sensitive=True, extra="ignore", env_nested_delimiter="__"
     )
 
     # Computed properties

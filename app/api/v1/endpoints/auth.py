@@ -1,22 +1,27 @@
 """
 Authentication endpoints: registration, login, refresh token.
 """
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
-from app.schemas.user import UserCreate, UserResponse, UserLogin
-from app.schemas.token import Token, RefreshTokenRequest, AccessTokenResponse
-from app.crud.user import get_user_by_email, get_user_by_username, create_user, get_user_by_id
 from app.core.security import create_access_token, create_refresh_token, verify_token
-
+from app.crud.user import (
+    create_user,
+    get_user_by_email,
+    get_user_by_id,
+    get_user_by_username,
+)
+from app.db.session import get_db
+from app.schemas.token import AccessTokenResponse, RefreshTokenRequest, Token
+from app.schemas.user import UserCreate, UserLogin, UserResponse
 
 router = APIRouter()
 
 
 @router.post(
-    "/register", 
-    response_model=UserResponse, 
+    "/register",
+    response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user",
     description="Create a new user account with a unique username and email",
@@ -44,12 +49,10 @@ router = APIRouter()
         422: {
             "description": "Validation error. The request body does not match the expected schema.",
         },
-
     },
 )
 async def register(
-    user_in: UserCreate,
-    db: AsyncSession = Depends(get_db)
+    user_in: UserCreate, db: AsyncSession = Depends(get_db)
 ) -> UserResponse:
     """
     Register new user.
@@ -64,16 +67,14 @@ async def register(
     existing_user = await get_user_by_email(db, email=user_in.email)
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email already registered"
+            status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
         )
 
     # Check if username already exists
     existing_user = await get_user_by_username(db, username=user_in.username)
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Username already taken"
+            status_code=status.HTTP_409_CONFLICT, detail="Username already taken"
         )
 
     # Create new user
@@ -83,7 +84,7 @@ async def register(
 
 
 @router.post(
-    "/login", 
+    "/login",
     response_model=Token,
     summary="Login user",
     description="Authenticate user by email and password and return a pair of JWT tokens",
@@ -113,10 +114,7 @@ async def register(
         },
     },
 )
-async def login(
-    credentials: UserLogin,
-    db: AsyncSession = Depends(get_db)
-) -> Token:
+async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)) -> Token:
     """
     Login user and return access/refresh tokens.
 
@@ -156,19 +154,15 @@ async def login(
     access_token = create_access_token(
         data={"sub": user.email, "user_id": user.id, "username": user.username}
     )
-    refresh_token = create_refresh_token(
-        data={"sub": user.email, "user_id": user.id}
-    )
+    refresh_token = create_refresh_token(data={"sub": user.email, "user_id": user.id})
 
     return Token(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer"
+        access_token=access_token, refresh_token=refresh_token, token_type="bearer"
     )
 
 
 @router.post(
-    "/refresh", 
+    "/refresh",
     response_model=AccessTokenResponse,
     summary="Refresh access token",
     description="Exchange a valid refresh token for a new access token",
@@ -203,8 +197,7 @@ async def login(
     },
 )
 async def refresh_access_token(
-        request: RefreshTokenRequest,
-        db: AsyncSession = Depends(get_db)
+    request: RefreshTokenRequest, db: AsyncSession = Depends(get_db)
 ) -> AccessTokenResponse:
     """
     Refresh access token using refresh token.
@@ -262,7 +255,4 @@ async def refresh_access_token(
         data={"sub": user.email, "user_id": user.id, "username": user.username}
     )
 
-    return AccessTokenResponse(
-        access_token=access_token,
-        token_type="bearer"
-    )
+    return AccessTokenResponse(access_token=access_token, token_type="bearer")

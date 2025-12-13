@@ -1,16 +1,20 @@
 """
 User management endpoints.
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser
 from app.db.session import get_db
 from app.schemas.user import UserResponse, UserProfileUpdate, ChangePassword, ChangePasswordResponse
 from app.models.user import User
 from app.crud import user as user_crud
-from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.session import get_db
+from app.schemas.user import ChangePassword, UserProfileUpdate, UserResponse
 
 router = APIRouter()
+
 
 @router.get(
     "/me",
@@ -22,9 +26,7 @@ router = APIRouter()
         401: {"description": "Not authenticated"},
     },
 )
-async def get_current_user_profile(
-        current_user: CurrentUser
-) -> UserResponse:
+async def get_current_user_profile(current_user: CurrentUser) -> UserResponse:
     """
     Get current user profile.
 
@@ -46,9 +48,9 @@ async def get_current_user_profile(
     },
 )
 async def put_update_user_profile(
-        profile_update: UserProfileUpdate,
-        current_user: CurrentUser,
-        db: AsyncSession = Depends(get_db)
+    profile_update: UserProfileUpdate,
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),
 ) -> UserResponse:
     """
     Update current user's profile information.
@@ -58,9 +60,7 @@ async def put_update_user_profile(
     Returns the updated user profile.
     """
     updated_user = await user_crud.update_user_profile(
-        db=db,
-        user=current_user,
-        profile_update=profile_update
+        db=db, user=current_user, profile_update=profile_update
     )
     return updated_user
 
@@ -81,23 +81,23 @@ async def put_update_user_profile(
 async def change_password(
     password_data: ChangePassword,
     current_user: CurrentUser,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Change password for authenticated user.
-    
-    Requires authentication. 
+
+    Requires authentication.
     - Verifies current password
     - Validates new password (min 8 characters)
     - Hashes and stores new password
-    
+
     Returns success message.
     """
     await user_crud.change_user_password(
         db=db,
         user=current_user,
         current_password=password_data.current_password,
-        new_password=password_data.new_password
+        new_password=password_data.new_password,
     )
-    
+
     return {"message": "Password changed successfully"}

@@ -1,15 +1,16 @@
 """
 FastAPI dependencies for authentication and authorization.
 """
+
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
 from app.core.security import verify_token
 from app.crud.user import get_user_by_id
+from app.db.session import get_db
 from app.models.user import User
 
 # HTTP Bearer token scheme - не выбрасывает автоматически ошибку
@@ -17,13 +18,13 @@ security = HTTPBearer(
     auto_error=False,
     bearerFormat="JWT",
     scheme_name="BearerAuth",
-    description="JWT Bearer token. Use 'Bearer <access_token>' from /api/v1/auth/login."
+    description="JWT Bearer token. Use 'Bearer <access_token>' from /api/v1/auth/login.",
 )
 
 
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
-    db: Annotated[AsyncSession, Depends(get_db)]
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> User:
     """
     Get current authenticated user from JWT token.
@@ -78,8 +79,7 @@ async def get_current_user(
     # Check if user is active
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
 
     return user
