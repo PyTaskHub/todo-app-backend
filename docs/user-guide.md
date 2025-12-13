@@ -38,9 +38,53 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 2. Health-check
+## 2. Быстрый старт (Quick Start)
 
-### 2.1 Проверка состояния приложения и БД
+### Минимальный пример для начала работы
+
+**Шаг 1: Проверить что сервис доступен**
+```bash
+curl http://localhost:8000/health
+```
+
+**Шаг 2: Зарегистрироваться**
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+        "username": "testuser",
+        "email": "test@example.com",
+        "password": "TestPass123!"
+      }'
+```
+
+**Шаг 3: Получить токен**
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+        "email": "test@example.com",
+        "password": "TestPass123!"
+      }'
+```
+
+Сохраните `access_token` из ответа.
+
+**Шаг 4: Создать первую задачу**
+```bash
+curl -X POST http://localhost:8000/api/v1/tasks/ \
+  -H "Authorization: Bearer <ваш_access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "title": "Моя первая задача"
+      }'
+```
+
+---
+
+## 3. Health-check
+
+### 3.1 Проверка состояния приложения и БД
 
 **Эндпоинт**
 
@@ -75,7 +119,7 @@ curl -X GET http://localhost:8000/health
 
 ---
 
-## 3. Аутентификация
+## 4. Аутентификация
 
 Префикс:
 
@@ -91,7 +135,7 @@ curl -X GET http://localhost:8000/health
 * `RefreshTokenRequest`
 * `AccessTokenResponse`
 
-### 3.1 Регистрация пользователя
+### 4.1 Регистрация пользователя
 
 **Эндпоинт**
 
@@ -174,7 +218,7 @@ print(r.status_code, r.json())
 
 ---
 
-### 3.2 Логин
+### 4.2 Логин
 
 **Эндпоинт**
 
@@ -238,7 +282,7 @@ print(tokens)
 
 ---
 
-### 3.3 Обновление access-токена
+### 4.3 Обновление access-токена
 
 **Эндпоинт**
 
@@ -294,7 +338,7 @@ print(r.status_code, r.json())
 
 ---
 
-## 4. Модель пользователя и профиль
+## 5. Модель пользователя и профиль
 
 Префикс:
 
@@ -310,7 +354,7 @@ print(r.status_code, r.json())
 
 ---
 
-### 4.1 Получить текущего пользователя
+### 5.1 Получить текущего пользователя
 
 **Эндпоинт**
 
@@ -351,7 +395,7 @@ curl -X GET http://localhost:8000/api/v1/users/me \
 
 ---
 
-### 4.2 Обновить профиль текущего пользователя
+### 5.2 Обновить профиль текущего пользователя
 
 **Эндпоинт**
 
@@ -390,7 +434,7 @@ curl -X PUT http://localhost:8000/api/v1/users/me \
 
 ---
 
-### 4.3 Смена пароля
+### 5.3 Смена пароля
 
 **Эндпоинт**
 
@@ -435,7 +479,7 @@ curl -X POST http://localhost:8000/api/v1/users/me/change-password \
 
 ---
 
-## 5. Задачи (Tasks)
+## 6. Задачи (Tasks)
 
 Префикс:
 
@@ -451,7 +495,7 @@ curl -X POST http://localhost:8000/api/v1/users/me/change-password \
 * `TaskStatsResponse`
 * фильтры: `TaskSortBy`, `SortOrder`, `StatusFilter`
 
-### 5.1 Структура задачи (`TaskResponse`)
+### 6.1 Структура задачи (`TaskResponse`)
 
 Пример ответа:
 
@@ -475,7 +519,7 @@ curl -X POST http://localhost:8000/api/v1/users/me/change-password \
 
 ---
 
-### 5.2 Создать новую задачу
+### 6.2 Создать новую задачу
 
 **Эндпоинт**
 
@@ -514,7 +558,7 @@ curl -X POST http://localhost:8000/api/v1/tasks/ \
 
 ---
 
-### 5.3 Обновить существующую задачу
+### 6.3 Обновить существующую задачу
 
 **Эндпоинт**
 
@@ -549,7 +593,7 @@ curl -X PUT http://localhost:8000/api/v1/tasks/10 \
 
 ---
 
-### 5.4 Получить одну задачу
+### 6.4 Получить одну задачу
 
 **Эндпоинт**
 
@@ -568,7 +612,7 @@ curl -X GET http://localhost:8000/api/v1/tasks/10 \
 
 ---
 
-### 5.5 Получить список задач с фильтрацией и пагинацией
+### 6.5 Получить список задач с фильтрацией и пагинацией
 
 **Эндпоинт**
 
@@ -582,18 +626,23 @@ GET /api/v1/tasks/
 * `offset` (int, ≥0, по умолчанию 0) - смещение
 * `status_filter` (`all` / `pending` / `completed`, по умолчанию `all`)
 * `search` (str, опционально) - поиск по `title` (case-insensitive)
-* `category_id` (str):
+* `category_id` (string, опционально) - фильтр по категории:
+  * `"1"`, `"2"` и т.д. - задачи конкретной категории (передается как число)
+  * `"null"` - только задачи БЕЗ категории
+  * не указан - все задачи (с категорией и без)
 
-  * `"{id}"` - задачи этой категории
-  * `null` - задачи без категории
-  * не передавать - все задачи
-* `sort_by` (`created_at` / `priority` / `due_date` / `status`, по умолчанию `created_at`)
-* `order` (`asc` / `desc`, по умолчанию `desc`)
-
-**Пример `curl`**
-
+**Примеры `curl`**
 ```bash
-curl -X GET "http://localhost:8000/api/v1/tasks/?limit=20&offset=0&status_filter=pending&sort_by=due_date&order=asc" \
+# Все задачи (параметр не указан)
+curl -X GET "http://localhost:8000/api/v1/tasks/" \
+  -H "Authorization: Bearer <access_token>"
+
+# Задачи категории с id=1
+curl -X GET "http://localhost:8000/api/v1/tasks/?category_id=1" \
+  -H "Authorization: Bearer <access_token>"
+
+# Только задачи БЕЗ категории
+curl -X GET "http://localhost:8000/api/v1/tasks/?category_id=null" \
   -H "Authorization: Bearer <access_token>"
 ```
 
@@ -626,7 +675,7 @@ curl -X GET "http://localhost:8000/api/v1/tasks/?limit=20&offset=0&status_filter
 
 ---
 
-### 5.6 Удалить задачу
+### 6.6 Удалить задачу
 
 **Эндпоинт**
 
@@ -645,7 +694,7 @@ curl -X DELETE http://localhost:8000/api/v1/tasks/10 \
 
 ---
 
-### 5.7 Пометить задачу выполненной
+### 6.7 Пометить задачу выполненной
 
 **Эндпоинт**
 
@@ -665,7 +714,7 @@ curl -X PATCH http://localhost:8000/api/v1/tasks/10/complete \
 
 ---
 
-### 5.8 Вернуть задачу в статус "pending"
+### 6.8 Вернуть задачу в статус "pending"
 
 **Эндпоинт**
 
@@ -685,7 +734,7 @@ curl -X PATCH http://localhost:8000/api/v1/tasks/10/uncomplete \
 
 ---
 
-### 5.9 Статистика по задачам
+### 6.9 Статистика по задачам
 
 **Эндпоинт**
 
@@ -713,7 +762,7 @@ curl -X GET http://localhost:8000/api/v1/tasks/stats \
 
 ---
 
-## 6. Категории
+## 7. Категории
 
 Префикс:
 
@@ -728,7 +777,7 @@ curl -X GET http://localhost:8000/api/v1/tasks/stats \
 * `CategoryResponse`
 * `CategoryListItem`
 
-### 6.1 Создать категорию
+### 7.1 Создать категорию
 
 **Эндпоинт**
 
@@ -772,7 +821,7 @@ curl -X POST http://localhost:8000/api/v1/categories/ \
 
 ---
 
-### 6.2 Обновить категорию
+### 7.2 Обновить категорию
 
 **Эндпоинт**
 
@@ -809,7 +858,7 @@ curl -X PUT http://localhost:8000/api/v1/categories/1 \
 
 ---
 
-### 6.3 Получить список категорий пользователя
+### 7.3 Получить список категорий пользователя
 
 **Эндпоинт**
 
@@ -847,7 +896,7 @@ curl -X GET http://localhost:8000/api/v1/categories/ \
 
 ---
 
-### 6.4 Удалить категорию
+### 7.4 Удалить категорию
 
 **Эндпоинт**
 
@@ -871,9 +920,9 @@ curl -X DELETE http://localhost:8000/api/v1/categories/1 \
 
 ---
 
-## 7. Типовые сценарии
+## 8. Типовые сценарии
 
-### 7.1 Первый запуск: регистрация → логин → создание задачи
+### 8.1 Первый запуск: регистрация → логин → создание задачи
 
 1. **Регистрация**
 
@@ -914,7 +963,7 @@ curl -X POST http://localhost:8000/api/v1/tasks/ \
 
 ---
 
-### 7.2 Категории и задачи
+### 8.2 Категории и задачи
 
 1. Создать категорию:
 
@@ -942,7 +991,7 @@ curl -X POST http://localhost:8000/api/v1/tasks/ \
 
 ---
 
-### 7.3 Поиск и сортировка задач
+### 8.3 Поиск и сортировка задач
 
 ```bash
 curl -X GET "http://localhost:8000/api/v1/tasks/?search=report&status_filter=pending&sort_by=priority&order=desc" \
@@ -951,7 +1000,7 @@ curl -X GET "http://localhost:8000/api/v1/tasks/?search=report&status_filter=pen
 
 ---
 
-### 7.4 Обновление и завершение задачи
+### 8.4 Обновление и завершение задачи
 
 ```bash
 # обновить приоритет
@@ -967,7 +1016,7 @@ curl -X PATCH http://localhost:8000/api/v1/tasks/10/complete \
 
 ---
 
-### 7.5 Получить статистику задач
+### 8.5 Получить статистику задач
 
 ```bash
 curl -X GET http://localhost:8000/api/v1/tasks/stats \
@@ -976,9 +1025,9 @@ curl -X GET http://localhost:8000/api/v1/tasks/stats \
 
 ---
 
-## 8. Ошибки и отладка
+## 9. Ошибки и отладка
 
-### 8.1 Частые HTTP-коды
+### 9.1 Частые HTTP-коды
 
 * `400 Bad Request` - некорректные данные (обычно подробнее в `detail`)
 * `401 Unauthorized` - нет токена / неверные креды / истёк токен
@@ -987,7 +1036,7 @@ curl -X GET http://localhost:8000/api/v1/tasks/stats \
 * `409 Conflict` - конфликт уникальности (`email`, `username`, `category name`)
 * `422 Unprocessable Entity` - ошибка валидации (неверный формат/типы полей)
 
-### 8.2 Типичные проблемы
+### 9.2 Типичные проблемы
 
 **Проблема:** всегда получаю `401 Incorrect email or password`
 **Проверить:**
@@ -1013,7 +1062,7 @@ curl -X GET http://localhost:8000/api/v1/tasks/stats \
 
 ---
 
-### 8.3 Чек-лист отладки
+### 9.3 Чек-лист отладки
 
 1. Правильный ли URL и HTTP-метод?
 2. Отправляете ли `Content-Type: application/json` там, где нужен JSON?
@@ -1023,7 +1072,7 @@ curl -X GET http://localhost:8000/api/v1/tasks/stats \
 
 ---
 
-## 9. FAQ
+## 10. FAQ
 
 ### Чем отличаются access и refresh токены?
 
