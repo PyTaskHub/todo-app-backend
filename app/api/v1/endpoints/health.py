@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone
 
 from app.db.session import get_db
-from app.schemas.health import HealthResponse
+from app.schemas.system import HealthResponse
 
 router = APIRouter()
 

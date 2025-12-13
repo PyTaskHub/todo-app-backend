@@ -14,3 +14,8 @@ class HealthResponse(BaseModel):
         ..., 
         description="Current UTC timestamp (ISO 8601)"
         )
+
+class RootResponse(BaseModel):
+    message: str = Field(example="Welcome to PyTaskHub!")
+    version: str = Field(example="1.0.0")
+    docs: str = Field(example="/api/docs")
