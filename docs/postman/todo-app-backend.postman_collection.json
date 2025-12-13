@@ -1,0 +1,915 @@
+{
+	"info": {
+		"_postman_id": "baf0815a-25a3-4f34-b1ec-062ec180371e",
+		"name": "todo-app-backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37103417"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register a new user",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"john_doe\",\r\n  \"email\": \"john@example.com\",\r\n  \"first_name\": \"John\",\r\n  \"last_name\": \"Doe\",\r\n  \"password\": \"MySecurePass123!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Create a new user account with a unique username and email\n\nRequest body example:\n\n``` json\n{\n  \"username\": \"john_doe\",\n  \"email\": \"john@example.com\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"password\": \"MySecurePass123!\"\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Login user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const dataJSON = pm.response.json();\r",
+									"\r",
+									"if (dataJSON && dataJSON.access_token) {\r",
+									"    pm.environment.set(\"token\", dataJSON.access_token);\r",
+									"} else {\r",
+									"    console.log(\"Access token не найден в ответе.\");\r",
+									"}\r",
+									"\r",
+									"if (dataJSON && dataJSON.refresh_token) {\r",
+									"    pm.environment.set(\"refresh_token\", dataJSON.refresh_token);\r",
+									"} else {\r",
+									"    console.log(\"Refresh token не найден в ответе.\");\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"{{email}}\",\r\n  \"password\": \"{{password}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Authenticate user by email and password and return a pair of JWT.\n\n(Data can be entered once in environment variables)\n\nRequest body example:\n\n``` json\n{\n  \"email\": \"john@example.com\",\n  \"password\": \"MySecurePass123!\"\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh access token",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"refresh_token\": \"{{refresh_token}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"refresh"
+							]
+						},
+						"description": "Exchange a valid refresh token for a new access token.\n\nRequest body example:\n\n``` json\n{\n  \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh...\"\n}\n\n ```"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints"
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get Current User Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"me"
+							]
+						},
+						"description": "Get current user profile.\n\nRequires authentication. Returns profile of authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Update User Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"user@example.com\",\r\n  \"first_name\": \"John\",\r\n  \"last_name\": \"Doe\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"me"
+							]
+						},
+						"description": "Update current user's profile information.\n\nRequires authentication. Allows updating email, first_name, last_name. Checks for email uniqueness if email is changed. Returns the updated user profile.\n\nRequest body example:\n\n``` json\n{\n  \"email\": \"user@example.com\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\"\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"current_password\": \"MyCurrentPass123!\",\r\n  \"new_password\": \"MyNewSecurePass456!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/me/change-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"me",
+								"change-password"
+							]
+						},
+						"description": "Change password for authenticated user.\n\nRequires authentication.\n\n- Verifies current password\n    \n- Validates new password (min 8 characters)\n    \n- Hashes and stores new password\n    \n\nReturns success message.\n\nRequest body example:\n\n``` json\n{\n  \"current_password\": \"MyCurrentPass123!\",\n  \"new_password\": \"MyNewSecurePass456!\"\n}\n\n ```"
+					},
+					"response": []
+				}
+			],
+			"description": "User endpoints"
+		},
+		{
+			"name": "Tasks",
+			"item": [
+				{
+					"name": "Create New Task",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"buy groceries\",\r\n  \"description\": \"buy milk, eggs, tea, coffee...\",\r\n  \"category_id\": 1,\r\n  \"priority\": \"low\",\r\n  \"due_date\": \"2025-12-13T11:19:38.214Z\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks"
+							]
+						},
+						"description": "Create a new task.\n\n- Authentication required\n    \n- **title**: must be provided (max 200 characters)\n    \n- If **category_id** is provided — it must belong to current user\n    \n\nReturns created task.\n\nRequest body example:\n\n``` json\n{\n  \"title\": \"buy groceries\",\n  \"description\": \"buy milk, eggs, tea, coffee...\",\n  \"category_id\": 1,\n  \"priority\": \"low\",\n  \"due_date\": \"2025-12-13T11:19:38.214Z\"\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tasks",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks?limit=20&offset=0&status_filter=all&search&category_id=null&sort_by=created_at&order=desc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Max number of tasks ( from 1 to 100). Default 20"
+								},
+								{
+									"key": "offset",
+									"value": "0",
+									"description": "Offset of response"
+								},
+								{
+									"key": "status_filter",
+									"value": "all",
+									"description": "Task status filtration"
+								},
+								{
+									"key": "search",
+									"value": null,
+									"description": "Search term for case-insensitive searching (optional)"
+								},
+								{
+									"key": "category_id",
+									"value": "null",
+									"description": "Category id filtration"
+								},
+								{
+									"key": "sort_by",
+									"value": "created_at",
+									"description": "Sort by property"
+								},
+								{
+									"key": "order",
+									"value": "desc",
+									"description": "Sort order"
+								}
+							]
+						},
+						"description": "Get paginated and filtered list of tasks for the authenticated user.\n\n**Authentication required.**\n\n- Returns only tasks belonging to the current user\n    \n- Sorted by created_at (newest first)\n    \n- Supports pagination via **limit** and **offset**\n    \n- Supports filtering by **status**:\n    \n    - **all** (default) — return all tasks\n        \n    - **pending** — only incomplete tasks\n        \n    - **completed** — only completed tasks\n        \n- Supports case-insensitive searching by **title**:\n    \n    - **{search_term}** — search in task titles\n        \n    - **null** — all tasks\n        \n- Supports filtering by **category_id**:\n    \n    - **{id}** — tasks of this category (belongs to user)\n        \n    - **null** — tasks without category\n        \n    - **omitted** — all tasks\n        \n- Supports sorting by **created_at**, **priority**, **due_date**, **status**\n    \n    - asc — tasks are sorted in ascending order\n        \n    - desc — tasks are sorted in descending order"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Task",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"to do homework\",\r\n  \"description\": \"to do math, to do chemistry\",\r\n  \"category_id\": 1,\r\n  \"priority\": \"high\",\r\n  \"due_date\": \"2025-12-29T11:24:23.393Z\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/:task_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								":task_id"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": "1921",
+									"description": "Id of task"
+								}
+							]
+						},
+						"description": "Update task belonging to the authenticated user.\n\n- **Authentication required**\n    \n- Only the task owner can update the task\n    \n- Fields: **title**, **description**, **priority**, **due_date**, **category_id**\n    \n- **status** can be updated via the /complete and /incomplete endpoints\n    \n\nReturns updated task.\n\nRequest body example:\n\n``` json\n{\n  \"title\": \"to do homework\",\n  \"description\": \"to do math, to do chemistry\",\n  \"category_id\": 1,\n  \"priority\": \"high\",\n  \"due_date\": \"2025-12-29T11:24:23.393Z\"\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Task",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/:task_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								":task_id"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": "1921",
+									"description": "Id of task"
+								}
+							]
+						},
+						"description": "Get a single task.\n\n- **Authentication required**.\n    \n- Optional fields validated through Pydantic\n    \n- If **category_id** is provided — it must belong to current user\n    \n- If task has the category, response contains category data\n    \n\nReturns single task."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Task",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/:task_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								":task_id"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": "1924",
+									"description": "Id of task"
+								}
+							]
+						},
+						"description": "Delete task.\n\n- Requires Authorization:\n    \n- Task owner can delete it only\n    \n- Task is deleted completely\n    \n\nReturns 204 No Content if success."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Task Statistics",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get statistics for the current user's tasks.\n\n- **Requires Authorization**\n    \n- Counts tasks with status = \"completed\" and \"pending\"\n    \n- Returns:\n    \n    - total - total number of tasks\n        \n    - completed - number of completed tasks\n        \n    - pending - number of pending tasks\n        \n    - completion_rate - completion percentage (0–100, rounded to 2 decimals)"
+					},
+					"response": []
+				}
+			],
+			"description": "Task endpoints"
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Create Category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Work\",\r\n  \"description\": \"Tasks for work\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"categories",
+								""
+							]
+						},
+						"description": "Create new category\n\n- Requires Authorization\n    \n\nReturns created category.\n\nRequest body example:\n\n``` json\n{\n  \"name\": \"Work\",\n  \"description\": \"Tasks for work\"\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Categories",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"categories",
+								""
+							]
+						},
+						"description": "Get list of all categories for current user.\n\n- **Requires Authorization**\n    \n- Returns only categories of current user\n    \n- Sorted by name in ascending order (A-Z)\n    \n- Includes tasks_count for each category\n    \n\nReturns list of user's categories."
+					},
+					"response": []
+				},
+				{
+					"name": "Update The Category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Study\",\r\n  \"description\": \"My tasks for study\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/:category_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"categories",
+								":category_id"
+							],
+							"variable": [
+								{
+									"key": "category_id",
+									"value": "176"
+								}
+							]
+						},
+						"description": "Update existing category.\n\n**Authentication required.**\n\nIn the parameters you need to enter the category ID\n\nRequest body example:\n\n``` json\n{\n  \"name\": \"Study\",\n  \"description\": \"My tasks for study\"\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Existing Category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/:category_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"categories",
+								":category_id"
+							],
+							"variable": [
+								{
+									"key": "category_id",
+									"value": "170"
+								}
+							]
+						},
+						"description": "Delete category belonging to the authenticated user.\n\n- **Requires Authorization**\n    \n- Only the category owner can delete it\n    \n- All tasks with this category become uncategorized (category_id = null)\n    \n\nIn the parameters you need to enter the category ID\n\nReturns 204 No Content on success."
+					},
+					"response": []
+				}
+			],
+			"description": "Category endpoints"
+		},
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Return application and database status.\n\n- Checks DB connection with a simple query\n    \n- Returns current UTC timestamp"
+					},
+					"response": []
+				}
+			],
+			"description": "Health endpoint"
+		},
+		{
+			"name": "Default",
+			"item": [
+				{
+					"name": "Root",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Root endpoint"
+					},
+					"response": []
+				}
+			],
+			"description": "Default endpoint"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					"// // Pre-request Script КОЛЛЕКЦИИ (а не отдельного запроса)\r",
+					"// const token = pm.environment.get(\"token\");\r",
+					"\r",
+					"// // Если токена нет или он просрочен - получаем новый\r",
+					"// if (!token || isTokenExpired(token)) {\r",
+					"//     console.log(\"Токен отсутствует или просрочен, получаем новый...\");\r",
+					"    \r",
+					"//     // Получаем новый токен синхронно (важно!)\r",
+					"//     const getTokenRequest = {\r",
+					"//         url: pm.collectionVariables.get(\"auth_url\"),\r",
+					"//         method: 'POST',\r",
+					"//         header: {\r",
+					"//             'Content-Type': 'application/json'\r",
+					"//         },\r",
+					"//         body: {\r",
+					"//             mode: 'raw',\r",
+					"//             raw: JSON.stringify({\r",
+					"//                 username: pm.collectionVariables.get(\"username\"),\r",
+					"//                 password: pm.collectionVariables.get(\"password\")\r",
+					"//             })\r",
+					"//         }\r",
+					"//     };\r",
+					"    \r",
+					"//     // Используем pm.sendRequest с синхронным флагом\r",
+					"//     pm.sendRequest(getTokenRequest, function(err, response) {\r",
+					"//         if (!err && response.code === 200) {\r",
+					"//             const newToken = response.json().access_token;\r",
+					"//             pm.environment.set(\"token\", newToken);\r",
+					"//             console.log(\"Токен обновлен\");\r",
+					"//         }\r",
+					"//     });\r",
+					"// }\r",
+					"\r",
+					"// function isTokenExpired(token) {\r",
+					"//     try {\r",
+					"//         const payload = JSON.parse(atob(token.split('.')[1]));\r",
+					"//         const expiry = payload.exp * 1000;\r",
+					"//         const now = Date.now();\r",
+					"//         // Добавляем запас 30 секунд\r",
+					"//         return expiry - 30000 < now;\r",
+					"//     } catch(e) {\r",
+					"//         return true;\r",
+					"//     }\r",
+					"// }"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "token",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
