@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.api import api_router
 from app.api.v1.endpoints import health
 from app.core.config import settings
+from app.schemas.system import RootResponse
 
 
 def create_application() -> FastAPI:
@@ -36,7 +37,7 @@ def create_application() -> FastAPI:
     app.include_router(api_router, prefix="/api/v1")
     app.include_router(health.router, tags=["Health"])
 
-    @app.get("/")
+    @app.get("/", response_model=RootResponse)
     async def root():
         """Root endpoint."""
         return {

@@ -31,9 +31,9 @@ router = APIRouter()
             "content": {
                 "application/json": {
                     "example": {
-                        "id": 1,
                         "name": "Work",
                         "description": "Tasks related to work",
+                        "id": 1,
                         "user_id": 1,
                         "created_at": "2025-11-25T10:00:00Z",
                         "updated_at": "2025-11-25T10:05:00Z",
@@ -82,9 +82,9 @@ async def create_new_category(
             "content": {
                 "application/json": {
                     "example": {
-                        "id": 1,
                         "name": "Personal",
                         "description": "Personal tasks",
+                        "id": 1,
                         "user_id": 1,
                         "created_at": "2025-11-25T10:00:00Z",
                         "updated_at": "2025-11-25T11:00:00Z",
@@ -138,16 +138,16 @@ async def update_the_category(
                 "application/json": {
                     "example": [
                         {
-                            "id": 1,
                             "name": "Work",
                             "description": "Work-related tasks",
+                            "id": 1,
                             "tasks_count": 3,
                             "created_at": "2025-11-25T10:00:00Z",
                         },
                         {
-                            "id": 2,
                             "name": "Personal",
                             "description": "Personal todos",
+                            "id": 2,
                             "tasks_count": 5,
                             "created_at": "2025-11-26T09:30:00Z",
                         },
@@ -196,9 +196,7 @@ async def get_user_categories(
         204: {"description": "Category successfully deleted"},
         401: {"description": "Not authenticated"},
         404: {"description": "Category not found or does not belong to the user"},
-        422: {
-            "description": "Validation error. The request does not match the expected schema"
-        },
+        422: {"description": "Validation error. Path parameter validation failed"},
     },
 )
 async def delete_existing_category(

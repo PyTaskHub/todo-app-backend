@@ -327,23 +327,23 @@ make db-add-testdata
 
 - `GET /api/v1/tasks` - Получение списка задач с фильтрацией и пагинацией
 - `POST /api/v1/tasks` - Создание новой задачи
-- `GET /api/v1/tasks/{id}` - Получение задачи по ID
-- `PUT /api/v1/tasks/{id}` - Обновление задачи
-- `DELETE /api/v1/tasks/{id}` - Удаление задачи
-- `PATCH /api/v1/tasks/{id}/toggle` - Переключение статуса выполнения
-- `GET /api/v1/tasks/search` - Поиск задач по названию
-- `GET /api/v1/tasks/statistics` - Статистика по задачам
+- `GET /api/v1/tasks/{task_id}` - Получение задачи по ID
+- `PUT /api/v1/tasks/{task_id}` - Обновление задачи
+- `DELETE /api/v1/tasks/{task_id}` - Удаление задачи
+- `GET /api/v1/tasks/stats` - Статистика по задачам
+- `PATCH /api/v1/tasks/{task_id}/complete` - Установка статуса задачи «выполнена» (completed)
+- `PATCH /api/v1/tasks/{task_id}/uncomplete` - Установка статуса задачи «в ожидании» (pending)
 
 #### Categories
 
 - `GET /api/v1/categories` - Получение списка категорий
 - `POST /api/v1/categories` - Создание категории
-- `PUT /api/v1/categories/{id}` - Обновление категории
-- `DELETE /api/v1/categories/{id}` - Удаление категории
+- `PUT /api/v1/categories/{category_id}` - Обновление категории
+- `DELETE /api/v1/categories/{category_id}` - Удаление категории
 
 #### System
 
-- `GET /api/health` - Проверка состояния сервиса
+- `GET /health` - Проверка состояния сервиса
 
 ---
 
@@ -356,6 +356,7 @@ todo-app-backend/
 │   ├── main.py              # Точка входа FastAPI приложения
 │   ├── api/                 # API endpoints
 │   │   ├── __init__.py
+│   │   ├── deps.py
 │   │   └── v1/
 │   │       ├── __init__.py
 │   │       ├── api.py       # Агрегация роутеров
@@ -364,7 +365,8 @@ todo-app-backend/
 │   │           ├── auth.py
 │   │           ├── users.py
 │   │           ├── tasks.py
-│   │           └── categories.py
+│   │           ├── categories.py
+│   │           └── health.py
 │   ├── core/                # Ядро приложения
 │   │   ├── __init__.py
 │   │   ├── config.py        # Конфигурация приложения
@@ -381,10 +383,12 @@ todo-app-backend/
 │   │   ├── __init__.py
 │   │   ├── user.py
 │   │   ├── task.py
-│   │   └── category.py
+│   │   ├── task_filters.py
+│   │   ├── category.py
+│   │   ├── token.py
+│   │   └── system.py
 │   └── crud/                # CRUD-операции
 │       ├── __init__.py
-│       ├── base.py
 │       ├── user.py
 │       ├── task.py
 │       └── category.py
@@ -392,7 +396,9 @@ todo-app-backend/
 │   ├── __init__.py
 │   ├── conftest.py
 │   ├── test_auth.py
-│   ├── test_tasks.py
+│   ├── test_database.py
+│   ├── test_main.py
+│   ├── test_task_crud.py
 │   └── test_integration.py
 ├── alembic/                 # Миграции БД
 │   ├── versions/
