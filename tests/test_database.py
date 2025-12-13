@@ -1,11 +1,12 @@
 """
 Tests for database configuration and connectivity.
 """
+
 import pytest
-from sqlalchemy import select, text
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import engine, AsyncSessionLocal, Base, get_db
+from app.db.session import AsyncSessionLocal, Base, engine, get_db
 
 
 class TestDatabaseConnection:
@@ -40,9 +41,9 @@ class TestDatabaseConnection:
         """Test that Base has correct metadata."""
         assert Base.metadata is not None
         # Base should have common columns defined
-        assert hasattr(Base, 'id')
-        assert hasattr(Base, 'created_at')
-        assert hasattr(Base, 'updated_at')
+        assert hasattr(Base, "id")
+        assert hasattr(Base, "created_at")
+        assert hasattr(Base, "updated_at")
 
 
 class TestDatabaseOperations:

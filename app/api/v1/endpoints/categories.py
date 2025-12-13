@@ -1,15 +1,26 @@
-
 from fastapi import APIRouter, Depends, status
-from app.api.deps import CurrentUser
-from app.crud.category import create_category, update_category, get_user_categories_with_tasks_count, delete_category
-from app.schemas.category import CategoryCreate, CategoryResponse, CategoryUpdate, CategoryListItem
-from app.db.session import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import CurrentUser
+from app.crud.category import (
+    create_category,
+    delete_category,
+    get_user_categories_with_tasks_count,
+    update_category,
+)
+from app.db.session import get_db
+from app.schemas.category import (
+    CategoryCreate,
+    CategoryListItem,
+    CategoryResponse,
+    CategoryUpdate,
+)
 
 router = APIRouter()
 
+
 @router.post(
-    "/", 
+    "/",
     response_model=CategoryResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new category",
@@ -32,13 +43,15 @@ router = APIRouter()
         },
         401: {"description": "Not authenticated"},
         409: {"description": "Category with this name already exists"},
-        422: {"description": "Validation error. The request body does not match the expected schema"},
+        422: {
+            "description": "Validation error. The request body does not match the expected schema"
+        },
     },
 )
 async def create_new_category(
-        current_user: CurrentUser,
-        category_in: CategoryCreate,
-        db: AsyncSession = Depends(get_db)
+    current_user: CurrentUser,
+    category_in: CategoryCreate,
+    db: AsyncSession = Depends(get_db),
 ) -> CategoryResponse:
     """
     Create a new category for the authenticated user.
@@ -49,9 +62,9 @@ async def create_new_category(
     Returns created category.
     """
     category = await create_category(
-      db=db,
-      category=category_in,
-      current_user_id=current_user.id,
+        db=db,
+        category=category_in,
+        current_user_id=current_user.id,
     )
 
     return category
@@ -82,14 +95,16 @@ async def create_new_category(
         401: {"description": "Not authenticated."},
         404: {"description": "Category not found or does not belong to the user"},
         409: {"description": "Category with this name already exists"},
-        422: {"description": "Validation error. The request body does not match the expected schema"},
+        422: {
+            "description": "Validation error. The request body does not match the expected schema"
+        },
     },
 )
 async def update_the_category(
-        category_id: int,
-        current_user: CurrentUser,
-        category_in: CategoryUpdate,
-        db: AsyncSession = Depends(get_db)
+    category_id: int,
+    current_user: CurrentUser,
+    category_in: CategoryUpdate,
+    db: AsyncSession = Depends(get_db),
 ) -> CategoryResponse:
     """
     Update an existing category of the authenticated user.
@@ -101,19 +116,19 @@ async def update_the_category(
     Returns updated category.
     """
     edited_category = await update_category(
-      db=db,
-      new_category=category_in,
-      current_user_id=current_user.id,
-      category_id=category_id
+        db=db,
+        new_category=category_in,
+        current_user_id=current_user.id,
+        category_id=category_id,
     )
 
     return edited_category
 
 
 @router.get(
-  "/",
-  response_model=list[CategoryListItem],
-  status_code=status.HTTP_200_OK,
+    "/",
+    response_model=list[CategoryListItem],
+    status_code=status.HTTP_200_OK,
     summary="List user categories",
     description="Get list of all categories for the authenticated user with tasks count",
     responses={
@@ -181,7 +196,9 @@ async def get_user_categories(
         204: {"description": "Category successfully deleted"},
         401: {"description": "Not authenticated"},
         404: {"description": "Category not found or does not belong to the user"},
-        422: {"description": "Validation error. The request does not match the expected schema"},
+        422: {
+            "description": "Validation error. The request does not match the expected schema"
+        },
     },
 )
 async def delete_existing_category(

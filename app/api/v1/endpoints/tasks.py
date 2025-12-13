@@ -1,15 +1,31 @@
 """
 Task management endpoints.
 """
-from fastapi import APIRouter, Depends, status, Query
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.deps import CurrentUser, get_db
-from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskListResponse, TaskStatsResponse
-from app.schemas.task_filters import TaskSortBy, SortOrder, StatusFilter 
-from app.crud.task import create_task, delete_the_task, update_task, get_task_by_id, get_tasks_for_user, get_task_statistics_for_user, mark_task_as_completed, mark_task_as_pending
+from app.crud.task import (
+    create_task,
+    delete_the_task,
+    get_task_by_id,
+    get_task_statistics_for_user,
+    get_tasks_for_user,
+    mark_task_as_completed,
+    mark_task_as_pending,
+    update_task,
+)
+from app.schemas.task import (
+    TaskCreate,
+    TaskListResponse,
+    TaskResponse,
+    TaskStatsResponse,
+    TaskUpdate,
+)
+from app.schemas.task_filters import SortOrder, StatusFilter, TaskSortBy
 
 router = APIRouter(tags=["Tasks"])
 
@@ -48,9 +64,7 @@ router = APIRouter(tags=["Tasks"])
     }
 )
 async def create_new_task(
-    task_in: TaskCreate,
-    current_user: CurrentUser,
-    db: AsyncSession = Depends(get_db)
+    task_in: TaskCreate, current_user: CurrentUser, db: AsyncSession = Depends(get_db)
 ) -> TaskResponse:
     """
     Create a new task.
@@ -62,11 +76,7 @@ async def create_new_task(
 
     Returns created task in TaskResponse format.
     """
-    task = await create_task(
-        db=db,
-        task_in=task_in,
-        user_id=current_user.id
-    )
+    task = await create_task(db=db, task_in=task_in, user_id=current_user.id)
 
     return task
 
@@ -118,18 +128,16 @@ async def update_existing_task(
     - Only the task owner can update the task
     - Fields: **title**, **description**, **priority**, **due_date**, **category_id**
     - **status** can be updated via the /complete and /incomplete endpoints
-    
+
     Returns updated task.
     """
 
     updated_task = await update_task(
-        db=db,
-        task_id=task_id,
-        task_in=task_in,
-        user_id=current_user.id
+        db=db, task_id=task_id, task_in=task_in, user_id=current_user.id
     )
 
     return updated_task
+
 
 @router.get(
     "/stats",
@@ -210,9 +218,7 @@ async def get_task_statistics(
    }
 )
 async def get_single_task(
-    task_id: int,
-    current_user: CurrentUser,
-    db: AsyncSession = Depends(get_db)
+    task_id: int, current_user: CurrentUser, db: AsyncSession = Depends(get_db)
 ) -> TaskResponse:
     """
     Get a single task.
@@ -320,7 +326,7 @@ async def get_tasks(
         - asc — tasks are sorted in ascending order
         - desc — tasks are sorted in descending order
     """
-    
+
     items, total = await get_tasks_for_user(
         db=db,
         user_id=current_user.id,
@@ -340,6 +346,7 @@ async def get_tasks(
         offset=offset,
     )
 
+
 @router.delete(
     "/{task_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -353,9 +360,7 @@ async def get_tasks(
     }
 )
 async def delete_task(
-    task_id: int,
-    current_user: CurrentUser,
-    db: AsyncSession = Depends(get_db)
+    task_id: int, current_user: CurrentUser, db: AsyncSession = Depends(get_db)
 ) -> None:
     """
     Delete task.
@@ -366,11 +371,7 @@ async def delete_task(
 
     Returns 204 No Content if success.
     """
-    await delete_the_task(
-        db=db,
-        task_id=task_id,
-        user_id=current_user.id
-    )
+    await delete_the_task(db=db, task_id=task_id, user_id=current_user.id)
 
 
 @router.patch(
@@ -424,11 +425,7 @@ async def complete_task(
 
     Returns updated task in TaskResponse format.
     """
-    task = await mark_task_as_completed(
-        db=db,
-        task_id=task_id,
-        user_id=current_user.id
-    )
+    task = await mark_task_as_completed(db=db, task_id=task_id, user_id=current_user.id)
     return task
 
 
@@ -483,9 +480,5 @@ async def uncomplete_task(
 
     Returns updated task in TaskResponse format.
     """
-    task = await mark_task_as_pending(
-        db=db,
-        task_id=task_id,
-        user_id=current_user.id
-    )
+    task = await mark_task_as_pending(db=db, task_id=task_id, user_id=current_user.id)
     return task

@@ -7,21 +7,15 @@ and additional metadata such as due date and completion timestamp.
 
 from enum import Enum
 
-from sqlalchemy import (
-    Column, 
-    Integer,
-    String, 
-    Text, 
-    DateTime, 
-    ForeignKey,
-    Enum as SAEnum,
-    Index,
-)
+from sqlalchemy import Column, DateTime
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy import ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
 
 # Pythom Enums - used inside the application and Pydantic
+
 
 class Priority(str, Enum):
     """
@@ -32,9 +26,11 @@ class Priority(str, Enum):
         medium: Medium priority (default)
         high:   High priority
     """
+
     low = "low"
     medium = "medium"
     high = "high"
+
 
 class Status(str, Enum):
     """
@@ -44,8 +40,10 @@ class Status(str, Enum):
         pending:   Task is not completed (default)
         completed: Task is finished
     """
+
     pending = "pending"
     completed = "completed"
+
 
 # SQLAlchemy Enums used at database
 
@@ -81,15 +79,12 @@ class Task(Base):
     __tablename__ = "tasks"
 
     title = Column(
-        String(200), 
+        String(200),
         nullable=False,
-        comment="Short title of the task (max 200 characters)"
-    
+        comment="Short title of the task (max 200 characters)",
     )
     description = Column(
-        Text, 
-        nullable=True,
-        comment="Optional detailed description of the task"
+        Text, nullable=True, comment="Optional detailed description of the task"
     )
 
     user_id = Column(
@@ -97,58 +92,52 @@ class Task(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
-        comment="ID of the user who created task"
+        comment="ID of the user who created task",
     )
 
     category_id = Column(
         Integer,
         ForeignKey("categories.id", ondelete="SET NULL"),
         nullable=True,
-        comment="ID of the category assigned to this task (optional)"
+        comment="ID of the category assigned to this task (optional)",
     )
 
     # Foreign Keys
 
     priority = Column(
-        PriorityEnum, 
-        nullable=False, 
+        PriorityEnum,
+        nullable=False,
         default=Priority.medium,
-        comment="Task priority (low, medium, high)"
+        comment="Task priority (low, medium, high)",
     )
-    
+
     status = Column(
-        StatusEnum, 
-        nullable=False, 
+        StatusEnum,
+        nullable=False,
         default=Status.pending,
-        comment="Task status (pending, completed)"
+        comment="Task status (pending, completed)",
     )
 
     # Timestamps for tasks
 
     due_date = Column(
-        DateTime(timezone=True), 
+        DateTime(timezone=True),
         nullable=True,
-        comment="Deadline of the task (optional)"
+        comment="Deadline of the task (optional)",
     )
 
     completed_at = Column(
-        DateTime(timezone=True), 
+        DateTime(timezone=True),
         nullable=True,
-        comment="Timestamp when the task was marked completed"
+        comment="Timestamp when the task was marked completed",
     )
 
     # Relationships
 
-    user = relationship(
-        "User", 
-        back_populates="tasks",
-        doc="User who owns this task"
-    )
+    user = relationship("User", back_populates="tasks", doc="User who owns this task")
 
     category = relationship(
-        "Category", 
-        back_populates="tasks",
-        doc="Category assigned to this task"
+        "Category", back_populates="tasks", doc="Category assigned to this task"
     )
 
     # Indexes
@@ -157,6 +146,14 @@ class Task(Base):
         Index("idx_tasks_priority", "priority"),
         Index("idx_tasks_status", "status"),
     )
+
+    @property
+    def category_name(self):
+        return self.category.name if self.category else None
+
+    @property
+    def category_description(self):
+        return self.category.description if self.category else None
 
     def __repr__(self) -> str:
         """
