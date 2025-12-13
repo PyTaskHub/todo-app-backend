@@ -11,7 +11,7 @@ from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate, TaskListRespo
 from app.schemas.task_filters import TaskSortBy, SortOrder, StatusFilter 
 from app.crud.task import create_task, delete_the_task, update_task, get_task_by_id, get_tasks_for_user, get_task_statistics_for_user, mark_task_as_completed, mark_task_as_pending
 
-router = APIRouter()
+router = APIRouter(tags=["Tasks"])
 
 @router.post(
     "/",
