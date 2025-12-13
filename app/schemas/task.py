@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.task import Priority, Status
 
@@ -40,6 +40,32 @@ class TaskBase(BaseModel):
         description="Deadline of the task",
     )
 
+    @field_validator("due_date", mode="before")
+    @classmethod
+    def validate_due_date(cls, v):
+        """
+        Validate that due_date is in ISO format, not Unix timestamp.
+
+        Accepts:
+        - None (optional field)
+        - datetime objects
+        - ISO format strings (e.g., "2025-12-31T23:59:59")
+
+        Rejects:
+        - Numeric values (int/float) which would be interpreted as Unix timestamps
+        """
+        if v is None:
+            return v
+
+        # Reject numeric Unix timestamps
+        if isinstance(v, (int, float)):
+            raise ValueError(
+                "due_date must be in ISO 8601 format (e.g., '2025-12-31T23:59:59'), "
+                "not a Unix timestamp"
+            )
+
+        # Accept datetime objects and strings (Pydantic will parse ISO strings)
+        return v
 
 class TaskCreate(TaskBase):
     """
@@ -70,6 +96,32 @@ class TaskUpdate(BaseModel):
     )
     due_date: Optional[datetime] = Field(None, description="New due date")
 
+    @field_validator("due_date", mode="before")
+    @classmethod
+    def validate_due_date(cls, v):
+        """
+        Validate that due_date is in ISO format, not Unix timestamp.
+
+        Accepts:
+        - None (optional field)
+        - datetime objects
+        - ISO format strings (e.g., "2025-12-31T23:59:59")
+
+        Rejects:
+        - Numeric values (int/float) which would be interpreted as Unix timestamps
+        """
+        if v is None:
+            return v
+
+        # Reject numeric Unix timestamps
+        if isinstance(v, (int, float)):
+            raise ValueError(
+                "due_date must be in ISO 8601 format (e.g., '2025-12-31T23:59:59'), "
+                "not a Unix timestamp"
+            )
+
+        # Accept datetime objects and strings (Pydantic will parse ISO strings)
+        return v
 
 class TaskResponse(TaskBase):
     """
