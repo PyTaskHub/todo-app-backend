@@ -422,3 +422,32 @@ def test_cannot_delete_task_of_other_user(client, created_task, second_auth_head
     )
 
     assert response.status_code == 404
+
+def test_create_task_unix_timestamp_rejected(client, auth_headers):
+    """Unix timestamps should be rejected for due_date."""
+    response = client.post(
+        "/api/v1/tasks/",
+        headers=auth_headers,
+        json={"title": "Task", "due_date": 1735304214}
+    )
+    assert response.status_code == 422
+    assert "ISO 8601 format" in response.json()["detail"][0]["msg"]
+
+
+def test_update_task_unix_timestamp_rejected(client, auth_headers):
+    """Unix timestamps should be rejected when updating due_date."""
+    # Create task
+    task = client.post(
+        "/api/v1/tasks/",
+        headers=auth_headers,
+        json={"title": "Task"}
+    ).json()
+
+    # Try to update with timestamp
+    response = client.put(
+        f"/api/v1/tasks/{task['id']}",
+        headers=auth_headers,
+        json={"due_date": 1735304214}
+    )
+    assert response.status_code == 422
+    assert "ISO 8601 format" in response.json()["detail"][0]["msg"]
