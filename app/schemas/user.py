@@ -163,3 +163,9 @@ class ChangePassword(BaseModel):
         description="New password (min 8 characters)",
         examples=["MyNewSecurePass456!"]
     )
+
+class ChangePasswordResponse(BaseModel):
+    message: str = Field(
+        ...,
+        example="Password changed successfully"
+    )

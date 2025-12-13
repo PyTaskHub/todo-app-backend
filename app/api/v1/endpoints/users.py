@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import CurrentUser
 from app.db.session import get_db
-from app.schemas.user import UserResponse, UserProfileUpdate, ChangePassword
+from app.schemas.user import UserResponse, UserProfileUpdate, ChangePassword, ChangePasswordResponse
 from app.models.user import User
 from app.crud import user as user_crud
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,6 +42,7 @@ async def get_current_user_profile(
         200: {"description": "User profile successfully updated"},
         401: {"description": "Not authenticated"},
         409: {"description": "Email already registered"},
+        422: {"description": "Validation error. The request body does not match the expected schema"},
     },
 )
 async def put_update_user_profile(
@@ -66,6 +67,7 @@ async def put_update_user_profile(
 
 @router.post(
     "/me/change-password",
+    response_model=ChangePasswordResponse,
     status_code=status.HTTP_200_OK,
     summary="Change password",
     description="Change password for the authenticated user",
@@ -73,7 +75,7 @@ async def put_update_user_profile(
         200: {"description": "Password changed successfully"},
         400: {"description": "Invalid input data"},
         401: {"description": "Incorrect current password"},
-        422: {"description": "Validation error"},
+        422: {"description": "Validation error. The request body does not match the expected schema"},
     }
 )
 async def change_password(
