@@ -418,9 +418,9 @@ todo-app-backend/
 
 * **Артур Юсупов** – Тимлид + Backend Lead
 * **Сергей Морозов** – Backend Developer
-* **Валерия Махмутова** – Backend Developer
-* **Стелла Петрова** – Backend + QA Engineer
-* **Алина Патралова** – Backend + Analyst + Junior QA
+* **Валерия Махмутова** – Backend Developer + QA Engineer
+* **Стелла Петрова** – Backend
+* **Алина Патралова** – Backend + Analyst
 
 ---
 
