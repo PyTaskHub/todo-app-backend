@@ -536,8 +536,7 @@ git clone https://USERNAME:TOKEN@github.com/PyTaskHub/todo-app-backend.git
 
 **Тимлид:** Артур Юсупов
 - GitHub: [@AsyncAssassin](https://github.com/AsyncAssassin)
-- Telegram: @artur_yusupov
-- Часовой пояс: GMT+8 (Бали)
+- Telegram: @aiusupov
 - Время доступности: 08:00-22:00
 
 **Общий чат команды:** [Telegram группа PyTaskHub]
