@@ -87,6 +87,7 @@ async def get_task_if_owned(
 ) -> Optional[Task]:
     """
     Get task by id only if it belongs to the given user.
+    Eagerly loads category relationship.
 
     Args:
         db: database session
@@ -96,7 +97,11 @@ async def get_task_if_owned(
     Returns:
         Task object if owned by user, otherwise None
     """
-    query = select(Task).where(Task.id == task_id, Task.user_id == user_id)
+    query = (
+        select(Task)
+        .options(joinedload(Task.category))
+        .where(Task.id == task_id, Task.user_id == user_id)
+    )
     result = await db.execute(query)
     return result.scalar_one_or_none()
 
@@ -138,7 +143,11 @@ async def update_task(
 
     db.add(task)
     await db.commit()
-    await db.refresh(task)
+
+    # Reload task with category after commit
+    query = select(Task).options(joinedload(Task.category)).where(Task.id == task_id)
+    result = await db.execute(query)
+    task = result.scalar_one()
 
     return task
 
@@ -197,7 +206,7 @@ async def get_tasks_for_user(
             items: list of Task objects
             total: total number of tasks matching the filter
     """
-    query = select(Task).where(Task.user_id == user_id)
+    query = select(Task).options(joinedload(Task.category)).where(Task.user_id == user_id)
 
     if status_filter == "pending":
         query = query.where(Task.status == Status.pending)
@@ -246,7 +255,7 @@ async def get_tasks_for_user(
     query = query.order_by(order_func(sort_column)).limit(limit).offset(offset)
 
     result = await db.execute(query)
-    items = result.scalars().all()
+    items = result.scalars().unique().all()
 
     count_query = select(func.count()).where(Task.user_id == user_id)
 
@@ -369,7 +378,11 @@ async def mark_task_as_completed(
 
     db.add(task)
     await db.commit()
-    await db.refresh(task)
+
+    # Reload task with category after commit
+    query = select(Task).options(joinedload(Task.category)).where(Task.id == task_id)
+    result = await db.execute(query)
+    task = result.scalar_one()
 
     return task
 
@@ -409,6 +422,10 @@ async def mark_task_as_pending(
 
     db.add(task)
     await db.commit()
-    await db.refresh(task)
+
+    # Reload task with category after commit
+    query = select(Task).options(joinedload(Task.category)).where(Task.id == task_id)
+    result = await db.execute(query)
+    task = result.scalar_one()
 
     return task
